@@ -1,25 +1,19 @@
-import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-import javax.swing.JSplitPane;
 import java.awt.BorderLayout;
-import javax.swing.JPanel;
-import javax.swing.JLayeredPane;
-import javax.swing.SpringLayout;
-import javax.swing.JButton;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import java.awt.CardLayout;
 import java.awt.Component;
+import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
+import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
 import javax.swing.JTextField;
-import java.awt.FlowLayout;
-import net.miginfocom.swing.MigLayout;
+import javax.swing.SpringLayout;
 import javax.swing.border.BevelBorder;
-import javax.swing.border.CompoundBorder;
 
 
 
@@ -71,6 +65,20 @@ public class TroubleTicketGUI
 		return null;
 	}
 	
+	public static ArrayList<JButton> getButtonsFromJPanel(JPanel jp)
+	{
+		ArrayList<JButton> ret = new ArrayList<>();
+		
+		for(Component c : jp.getComponents())
+		{
+			if(c instanceof JButton)
+			{
+				ret.add((JButton)c);
+			}
+		}
+		return ret;
+	}
+	
 	private JFrame frame;
 	private JTextField textField;
 
@@ -79,8 +87,6 @@ public class TroubleTicketGUI
 	private JButton btnModifyTicket;
 	private JButton btnSearch;
 	
-	private JButton[] menuButtons = {btnLogin,btnNewTicket,btnModifyTicket,btnSearch};
-
 	/**
 	 * Launch the application.
 	 */
@@ -145,24 +151,14 @@ public class TroubleTicketGUI
 		panelMenu.add(btnLogin);
 
 		btnNewTicket = new JButton("New Ticket");
-		sl_panelMenu.putConstraint(SpringLayout.NORTH, btnNewTicket, 36, SpringLayout.NORTH, panelMenu);
-		sl_panelMenu.putConstraint(SpringLayout.WEST, btnNewTicket, 0, SpringLayout.WEST, btnLogin);
-		sl_panelMenu.putConstraint(SpringLayout.EAST, btnNewTicket, 0, SpringLayout.EAST, btnLogin);
 		btnNewTicket.setName(BUTTON_NEW_TICKET_NAME);
 		panelMenu.add(btnNewTicket);
 
 		btnModifyTicket = new JButton("Modify Ticket");
-		sl_panelMenu.putConstraint(SpringLayout.NORTH, btnModifyTicket, 67, SpringLayout.NORTH, panelMenu);
-		sl_panelMenu.putConstraint(SpringLayout.WEST, btnModifyTicket, 0, SpringLayout.WEST, btnLogin);
-		sl_panelMenu.putConstraint(SpringLayout.EAST, btnModifyTicket, 0, SpringLayout.EAST, btnLogin);
 		btnModifyTicket.setName(BUTTON_MODIFY_TICKET_NAME);
 		panelMenu.add(btnModifyTicket);
 
 		btnSearch = new JButton("Search");
-		sl_panelMenu.putConstraint(SpringLayout.EAST, btnLogin, 0, SpringLayout.EAST, btnSearch);
-		sl_panelMenu.putConstraint(SpringLayout.NORTH, btnSearch, 98, SpringLayout.NORTH, panelMenu);
-		sl_panelMenu.putConstraint(SpringLayout.WEST, btnSearch, 10, SpringLayout.WEST, panelMenu);
-		sl_panelMenu.putConstraint(SpringLayout.EAST, btnSearch, -10, SpringLayout.EAST, panelMenu);
 		btnSearch.setName(BUTTON_SEARCH_NAME);
 		panelMenu.add(btnSearch);
 		
@@ -330,13 +326,43 @@ public class TroubleTicketGUI
 				JLabel label = lblCurrentPane;
 				JButton button = (JButton)e.getSource();
 				
-				println("Someone clicked button \'" + button.getName() +"\' or \'" + button.getText() + "\'");
-				printf("About to do cl.show(\"%s\", \"%s\")\n",panelRightContent.getName(),panel.getName());
+				printf("Someone clicked button '%s' or '%s",button.getName(),button.getText());
+				printf("About to do cl.show('%s', '%s')\n",panelRightContent.getName(),panel.getName());
 				
 				cl.show(panelRightContent, panel.getName());
 				label.setText(button.getText());
 			}
 		});
+		
+		
+		
+
+		
+		//insert formatting for all buttons
+		ArrayList<JButton> menuButtons = getButtonsFromJPanel(panelMenu);
+		SpringLayout tempSL = (SpringLayout)panelMenu.getLayout();
+		
+		
+		for(int i = 0; i < menuButtons.size(); i++)
+		{
+			JButton tempButton = menuButtons.get(i);
+			printf("menuButtons[%d] = %s\n",i,tempButton);
+			
+			tempSL.putConstraint(WEST, tempButton, 10, WEST, panelMenu);
+			tempSL.putConstraint(EAST, tempButton, -10, EAST, panelMenu);
+			
+			if(i == 0) //first button aligns vertically w/ container
+			{
+				tempSL.putConstraint(NORTH, tempButton, 10, NORTH, panelMenu);
+			}
+			else //all others align with south side of prev. button
+			{
+				JButton prevButton = menuButtons.get(i - 1);
+				tempSL.putConstraint(NORTH, tempButton, 10, SOUTH, prevButton);
+			}
+		}
+		
+		
 		
 		btnLogin.doClick(); //to setup the top text
 	}
