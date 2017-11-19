@@ -167,7 +167,7 @@ public class TroubleTicketGUI
 		
 		JLabel lblCurrentlyLoggedIn = new JLabel("Currently logged in as:");
 		panelStatus.add(lblCurrentlyLoggedIn);
-		splitPaneLeft.setDividerLocation(200);
+		splitPaneLeft.setDividerLocation(DEFAULT_DIVIDER_WIDTH);
 		
 		
 
@@ -213,14 +213,14 @@ public class TroubleTicketGUI
 		
 		textField = new JTextField();
 		textField.setToolTipText("username");
-		sl_panelLogin.putConstraint(SpringLayout.NORTH, textField, 120, SpringLayout.NORTH, panelLogin);
-		sl_panelLogin.putConstraint(SpringLayout.WEST, textField, 10, SpringLayout.WEST, panelLogin);
+		sl_panelLogin.putConstraint(NORTH, textField, 120, NORTH, panelLogin);
+		sl_panelLogin.putConstraint(WEST, textField, 10, WEST, panelLogin);
 		panelLogin.add(textField);
 		textField.setColumns(10);
 		
 		JLabel lblUsername = new JLabel("Username");
-		sl_panelLogin.putConstraint(SpringLayout.WEST, lblUsername, 41, SpringLayout.WEST, panelLogin);
-		sl_panelLogin.putConstraint(SpringLayout.SOUTH, lblUsername, -6, SpringLayout.NORTH, textField);
+		sl_panelLogin.putConstraint(WEST, lblUsername, 41, WEST, panelLogin);
+		sl_panelLogin.putConstraint(SOUTH, lblUsername, -6, NORTH, textField);
 		panelLogin.add(lblUsername);
 		
 		JPanel panelRightTop = new JPanel();
@@ -245,8 +245,8 @@ public class TroubleTicketGUI
 
 		
 		JButton btnSurch = new JButton("surch???");
-		sl_panelSearch.putConstraint(SpringLayout.NORTH, btnSurch, 178, SpringLayout.NORTH, panelSearch);
-		sl_panelSearch.putConstraint(SpringLayout.EAST, btnSurch, -177, SpringLayout.EAST, panelSearch);
+		sl_panelSearch.putConstraint(NORTH, btnSurch, 178, NORTH, panelSearch);
+		sl_panelSearch.putConstraint(EAST, btnSurch, -177, EAST, panelSearch);
 		panelSearch.add(btnSurch, "btnSurch");
 		
 		JPanel panelModifyTicket = new JPanel();
@@ -256,8 +256,8 @@ public class TroubleTicketGUI
 		panelModifyTicket.setLayout(springLayout_1);
 		
 		JButton btnModify = new JButton("modify???");
-		springLayout_1.putConstraint(SpringLayout.NORTH, btnModify, 184, SpringLayout.NORTH, panelModifyTicket);
-		springLayout_1.putConstraint(SpringLayout.WEST, btnModify, 112, SpringLayout.WEST, panelModifyTicket);
+		springLayout_1.putConstraint(NORTH, btnModify, 184, NORTH, panelModifyTicket);
+		springLayout_1.putConstraint(WEST, btnModify, 112, WEST, panelModifyTicket);
 		panelModifyTicket.add(btnModify);
 		splitPane.setDividerLocation(DEFAULT_DIVIDER_WIDTH);
 		
@@ -348,17 +348,17 @@ public class TroubleTicketGUI
 			JButton tempButton = menuButtons.get(i);
 			printf("menuButtons[%d] = %s\n",i,tempButton);
 			
-			tempSL.putConstraint(WEST, tempButton, 10, WEST, panelMenu);
-			tempSL.putConstraint(EAST, tempButton, -10, EAST, panelMenu);
+			tempSL.putConstraint(WEST, tempButton, PADDING, WEST, panelMenu);
+			tempSL.putConstraint(EAST, tempButton, -PADDING, EAST, panelMenu);
 			
 			if(i == 0) //first button aligns vertically w/ container
 			{
-				tempSL.putConstraint(NORTH, tempButton, 10, NORTH, panelMenu);
+				tempSL.putConstraint(NORTH, tempButton, PADDING, NORTH, panelMenu);
 			}
 			else //all others align with south side of prev. button
 			{
 				JButton prevButton = menuButtons.get(i - 1);
-				tempSL.putConstraint(NORTH, tempButton, 10, SOUTH, prevButton);
+				tempSL.putConstraint(NORTH, tempButton, PADDING, SOUTH, prevButton);
 			}
 		}
 		
