@@ -1,27 +1,27 @@
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
-import javax.swing.JTextField;
-import javax.swing.SpringLayout;
+import javax.swing.*;
 import javax.swing.border.BevelBorder;
+
+import java.awt.Font;
+import java.awt.LayoutManager;
 
 
 
 public class TroubleTicketGUI
 {
+	private static       int 	DEFAULT_LOGIN_MODE = 0; //Which entry should be used? If this is too large, the last one will be used.
+	private static final String LOGINS_FILE_PATH = "login.txt"; //Where are our logins and passwords stored? This is for security and for not committing passwords to git.
 	
-	private static final int PADDING = 10;
-	private static final int DEFAULT_DIVIDER_WIDTH = 150;
+	private static final int 	PADDING = 10;
+	private static final int 	DEFAULT_DIVIDER_WIDTH = 150;
 	
 	private static final String NORTH = SpringLayout.NORTH;
 	private static final String EAST = SpringLayout.EAST;
@@ -34,6 +34,9 @@ public class TroubleTicketGUI
 	private static final String BUTTON_SEARCH_NAME = "btnSearch";
 
 	private static final String PANEL_RIGHT_CONTENT_NAME = "panelRightContent";
+	
+	private static final String NOT_LOGGED_IN = "Not currently logged in.";
+
 	
 	
 	
@@ -79,13 +82,88 @@ public class TroubleTicketGUI
 		return ret;
 	}
 	
-	private JFrame frame;
-	private JTextField textField;
+	
+	public void modifyRightPane(JPanel jp, ActionEvent e)
+	{
+		JPanel panel = panelModifyTicket;
 
+		CardLayout cl = (CardLayout) panelRightContent.getLayout();
+		JLabel label = lblCurrentPane;
+		JButton button = (JButton)e.getSource();
+		
+		println("Someone clicked button \'" + button.getName() +"\' or \'" + button.getText() + "\'");
+		printf("About to do cl.show(\"%s\", \"%s\")\n",panelRightContent.getName(),jp.getName());
+		
+		cl.show(panelRightContent, jp.getName());
+		label.setText(button.getText());
+	}
+	
+	/***
+	 * Gets the info from the two login info fields.
+	 * This is its own method so that either pressing ENTER or clicking "Submit" will log you in.
+	 */
+	public String[] getLogin()
+	{
+		String[] ret = {"",""};
+		
+		ret[0] = textFieldUsername.getText();
+		ret[1] = textFieldPassword.getText();
+		
+		return ret;
+	}
+	
+	private void doLogin(String username, String password)
+	{
+		int result = Dao.login(username, password);
+
+		if(result == Dao.NORMAL_USER || result == Dao.ADMINISTRATOR)
+		{
+			lblWhosLoggedIn.setText(username);
+		}
+		
+	}	
+	
+
+	private JFrame frame;
+	private JLabel lblWhosLoggedIn;
+	private JLabel lblCurrentPane;
+	
 	private JButton btnLogin;
 	private JButton btnNewTicket;
 	private JButton btnModifyTicket;
 	private JButton btnSearch;
+	
+	private JPasswordField textFieldPassword;
+	private JTextField textFieldUsername;
+	
+	private JPanel panelRightContent;
+
+	private JPanel panelLogin;
+	private JPanel panelNewTicket;
+	private JPanel panelSearch;
+	private JPanel panelModifyTicket;
+	private JButton btnModify;
+	private JPanel panelRight;
+	private SpringLayout sl_panelRight;
+	private JButton btnLoginSubmit;
+	private SpringLayout sl_panelLogin;
+	private JPanel panelUsername;
+	private SpringLayout sl_panelSearch;
+	private SpringLayout sl_panelNewTicket;
+	private JLabel lblUsername;
+	private JPanel panelRightTop;
+	private JPanel panelPassword;
+	private JLabel lblPassword;
+	private JButton btnNewTiket;
+	private JButton btnSurch;
+	private SpringLayout springLayout_1;
+	private JPanel panelStatus;
+	private JLabel lblCurrentlyLoggedIn;
+	private JSplitPane splitPane;
+	private JPanel panelLeft;
+	private JSplitPane splitPaneLeft;
+	private JPanel panelMenu;
+	
 	
 	/**
 	 * Launch the application.
@@ -93,16 +171,27 @@ public class TroubleTicketGUI
 	public static void main(String[] args)
 	{
 		
-		Dao dao = new Dao();
-		ArrayList<ArrayList<String>> logins = Dao.getLoginsFromFile("login.txt");
+		ArrayList<ArrayList<String>> logins = Dao.getLoginsFromFile(LOGINS_FILE_PATH);
 		
 		int i = 0;
 		for (ArrayList<String> login : logins)
 		{
-			printf("Login is %d long and is %s",login.size(),login);
-			printf("Login %2d: '%s','%s','%s'",i,login.get(0),login.get(1),login.get(2));
+//			printf("Login is %d long and is %s",login.size(),login);
+//			printf("Login %2d: '%s','%s','%s'",i,login.get(0),login.get(1),login.get(2));
 			i++;
 		}
+		
+		if(DEFAULT_LOGIN_MODE >= logins.size())
+		{
+			DEFAULT_LOGIN_MODE = logins.size()-1; 
+		}
+		
+		printf("\n\nWe're going to use the %dth entry in '%s', aka '%s'.\n\n",DEFAULT_LOGIN_MODE,LOGINS_FILE_PATH,logins.get(DEFAULT_LOGIN_MODE));
+		
+		ArrayList<String> login = logins.get(DEFAULT_LOGIN_MODE);
+		
+		Dao dao = new Dao(login.get(0), login.get(1), login.get(2));
+		
 		
 		EventQueue.invokeLater(new Runnable()
 		{
@@ -136,7 +225,7 @@ public class TroubleTicketGUI
 		SpringLayout springLayout = new SpringLayout();
 		frame.getContentPane().setLayout(springLayout);
 		
-		JSplitPane splitPane = new JSplitPane();
+		splitPane = new JSplitPane();
 		splitPane.setName("splitPane");
 		springLayout.putConstraint(SOUTH, splitPane, 0, SOUTH, frame.getContentPane());
 		springLayout.putConstraint(EAST, splitPane, 0, EAST, frame.getContentPane());
@@ -144,14 +233,14 @@ public class TroubleTicketGUI
 		springLayout.putConstraint(WEST, splitPane, 0, WEST, frame.getContentPane());
 		frame.getContentPane().add(splitPane, splitPane.getName());
 		
-		JPanel panelLeft = new JPanel();
+		panelLeft = new JPanel();
 		splitPane.setLeftComponent(panelLeft);
 		panelLeft.setLayout(new BorderLayout(0, 0));
 		
-		JSplitPane splitPaneLeft = new JSplitPane();
+		splitPaneLeft = new JSplitPane();
 		splitPaneLeft.setOrientation(JSplitPane.VERTICAL_SPLIT);
 		panelLeft.add(splitPaneLeft);
-		JPanel panelMenu = new JPanel();
+		panelMenu = new JPanel();
 		splitPaneLeft.setRightComponent(panelMenu);
 		SpringLayout sl_panelMenu = new SpringLayout();
 		panelMenu.setLayout(sl_panelMenu);
@@ -174,24 +263,28 @@ public class TroubleTicketGUI
 		btnSearch.setName(BUTTON_SEARCH_NAME);
 		panelMenu.add(btnSearch);
 		
-		JPanel panelStatus = new JPanel();
+		panelStatus = new JPanel();
 		splitPaneLeft.setLeftComponent(panelStatus);
 		
-		JLabel lblCurrentlyLoggedIn = new JLabel("Currently logged in as:");
+		lblCurrentlyLoggedIn = new JLabel("Currently logged in as:");
 		panelStatus.add(lblCurrentlyLoggedIn);
-		splitPaneLeft.setDividerLocation(DEFAULT_DIVIDER_WIDTH);
+		
+		lblWhosLoggedIn = new JLabel(NOT_LOGGED_IN);
+		lblWhosLoggedIn.setFont(new Font("Dialog", Font.PLAIN, 12));
+		panelStatus.add(lblWhosLoggedIn);
+		splitPaneLeft.setDividerLocation(100);
 		
 		
 
 		
 
 
-		JPanel panelRight = new JPanel();
+		panelRight = new JPanel();
 		splitPane.setRightComponent(panelRight);
-		SpringLayout sl_panelRight = new SpringLayout();
+		sl_panelRight = new SpringLayout();
 		panelRight.setLayout(sl_panelRight);
 
-		JPanel panelRightContent = new JPanel();
+		panelRightContent = new JPanel();
 		sl_panelRight.putConstraint(SOUTH, panelRightContent, 0, SOUTH, panelRight);
 		sl_panelRight.putConstraint(EAST, panelRightContent, 0, EAST, panelRight);
 		panelRightContent.setName(PANEL_RIGHT_CONTENT_NAME);
@@ -200,42 +293,67 @@ public class TroubleTicketGUI
 		panelRight.add(panelRightContent, panelRightContent.getName());
 		panelRightContent.setLayout(new CardLayout(0, 0));
 		
-		JPanel panelLogin = new JPanel();
+		panelLogin = new JPanel();
 		panelLogin.setName("panelLogin");
 		panelRightContent.add(panelLogin, panelLogin.getName());
-		SpringLayout sl_panelLogin = new SpringLayout();
+		sl_panelLogin = new SpringLayout();
 		panelLogin.setLayout(sl_panelLogin);
 		
-		JPanel panelNewTicket = new JPanel();
+		panelNewTicket = new JPanel();
 		panelNewTicket.setName("panelNewTicket");
 		panelRightContent.add(panelNewTicket, panelNewTicket.getName());
-		SpringLayout sl_panelNewTicket = new SpringLayout();
+		sl_panelNewTicket = new SpringLayout();
 		panelNewTicket.setLayout(sl_panelNewTicket);
 		
-		JPanel panelSearch = new JPanel();
+		panelSearch = new JPanel();
 		panelSearch.setName("panelSearch");
 		panelRightContent.add(panelSearch, panelSearch.getName());
-		SpringLayout sl_panelSearch = new SpringLayout();
+		sl_panelSearch = new SpringLayout();
 		panelSearch.setLayout(sl_panelSearch);
 		
-		JButton btnLogin_1 = new JButton("lawg in???");
-		sl_panelLogin.putConstraint(NORTH, btnLogin_1, 171, NORTH, panelLogin);
-		sl_panelLogin.putConstraint(WEST, btnLogin_1, 135, WEST, panelLogin);
-		panelLogin.add(btnLogin_1);
+		btnLoginSubmit = new JButton("Submit");
+
+		panelLogin.add(btnLoginSubmit);
 		
-		textField = new JTextField();
-		textField.setToolTipText("username");
-		sl_panelLogin.putConstraint(NORTH, textField, 120, NORTH, panelLogin);
-		sl_panelLogin.putConstraint(WEST, textField, 10, WEST, panelLogin);
-		panelLogin.add(textField);
-		textField.setColumns(10);
+		panelUsername = new JPanel();
+		sl_panelLogin.putConstraint(SpringLayout.WEST, btnLoginSubmit, 0, SpringLayout.WEST, panelUsername);
+		sl_panelLogin.putConstraint(SpringLayout.EAST, btnLoginSubmit, 0, SpringLayout.EAST, panelUsername);
+		sl_panelLogin.putConstraint(SpringLayout.NORTH, panelUsername, 86, SpringLayout.NORTH, panelLogin);
+		sl_panelLogin.putConstraint(SpringLayout.WEST, panelUsername, 227, SpringLayout.WEST, panelLogin);
+		sl_panelLogin.putConstraint(SpringLayout.SOUTH, panelUsername, -363, SpringLayout.SOUTH, panelLogin);
+		sl_panelLogin.putConstraint(SpringLayout.EAST, panelUsername, -242, SpringLayout.EAST, panelLogin);
+		panelLogin.add(panelUsername);
 		
-		JLabel lblUsername = new JLabel("Username");
+		lblUsername = new JLabel("Username");
+		panelUsername.add(lblUsername);
 		sl_panelLogin.putConstraint(WEST, lblUsername, 41, WEST, panelLogin);
-		sl_panelLogin.putConstraint(SOUTH, lblUsername, -6, NORTH, textField);
-		panelLogin.add(lblUsername);
+		sl_panelLogin.putConstraint(SpringLayout.SOUTH, lblUsername, -397, SpringLayout.SOUTH, panelLogin);
 		
-		JPanel panelRightTop = new JPanel();
+		textFieldUsername = new JTextField();
+
+		panelUsername.add(textFieldUsername);
+		textFieldUsername.setToolTipText("username");
+		sl_panelLogin.putConstraint(NORTH, textFieldUsername, 120, NORTH, panelLogin);
+		sl_panelLogin.putConstraint(WEST, textFieldUsername, 10, WEST, panelLogin);
+		textFieldUsername.setColumns(10);
+		
+		panelPassword = new JPanel();
+		sl_panelLogin.putConstraint(SpringLayout.NORTH, panelPassword, 10, SpringLayout.SOUTH, panelUsername);
+		sl_panelLogin.putConstraint(SpringLayout.WEST, panelPassword, 0, SpringLayout.WEST, btnLoginSubmit);
+		sl_panelLogin.putConstraint(SpringLayout.SOUTH, panelPassword, 78, SpringLayout.SOUTH, panelUsername);
+		sl_panelLogin.putConstraint(SpringLayout.NORTH, btnLoginSubmit, 10, SpringLayout.SOUTH, panelPassword);
+		sl_panelLogin.putConstraint(SpringLayout.EAST, panelPassword, 0, SpringLayout.EAST, panelUsername);
+		panelLogin.add(panelPassword);
+		
+		lblPassword = new JLabel("Password");
+		panelPassword.add(lblPassword);
+		
+		textFieldPassword = new JPasswordField();
+		textFieldPassword.setToolTipText("username");
+		textFieldPassword.setColumns(10);
+		panelPassword.add(textFieldPassword);
+		
+		panelRightTop = new JPanel();
 		panelRightTop.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
 		sl_panelRight.putConstraint(NORTH, panelRightTop, 0, NORTH, panelRight);
 		sl_panelRight.putConstraint(WEST, panelRightTop, 0, WEST, panelRightContent);
@@ -243,12 +361,12 @@ public class TroubleTicketGUI
 		sl_panelRight.putConstraint(EAST, panelRightTop, 0, EAST, panelRightContent);
 		panelRight.add(panelRightTop);
 		
-		JLabel lblCurrentPane = new JLabel("THIS_SHOULD_BE_AUTO_REPLACED");
+		lblCurrentPane = new JLabel("THIS_SHOULD_BE_AUTO_REPLACED");
 		panelRightTop.add(lblCurrentPane);
 		sl_panelNewTicket.putConstraint(NORTH, lblCurrentPane, 10, NORTH, panelNewTicket);
 		sl_panelNewTicket.putConstraint(EAST, lblCurrentPane, -230, EAST, panelNewTicket);
 		
-		JButton btnNewTiket = new JButton("new TIKET??");
+		btnNewTiket = new JButton("new TIKET??");
 		btnNewTiket.setName("btnNewTiket");
 		sl_panelNewTicket.putConstraint(NORTH, btnNewTiket, 127, NORTH, panelNewTicket);
 		sl_panelNewTicket.putConstraint(WEST, btnNewTiket, 93, WEST, panelNewTicket);
@@ -256,96 +374,101 @@ public class TroubleTicketGUI
 		
 
 		
-		JButton btnSurch = new JButton("surch???");
+		btnSurch = new JButton("surch???");
 		sl_panelSearch.putConstraint(NORTH, btnSurch, 178, NORTH, panelSearch);
 		sl_panelSearch.putConstraint(EAST, btnSurch, -177, EAST, panelSearch);
 		panelSearch.add(btnSurch, "btnSurch");
 		
-		JPanel panelModifyTicket = new JPanel();
+		panelModifyTicket = new JPanel();
 		panelModifyTicket.setName("panelModifyTicket");
 		panelRightContent.add(panelModifyTicket, panelModifyTicket.getName());
-		SpringLayout springLayout_1 = new SpringLayout();
+		springLayout_1 = new SpringLayout();
 		panelModifyTicket.setLayout(springLayout_1);
 		
-		JButton btnModify = new JButton("modify???");
+		btnModify = new JButton("modify???");
 		springLayout_1.putConstraint(NORTH, btnModify, 184, NORTH, panelModifyTicket);
 		springLayout_1.putConstraint(WEST, btnModify, 112, WEST, panelModifyTicket);
 		panelModifyTicket.add(btnModify);
 		splitPane.setDividerLocation(DEFAULT_DIVIDER_WIDTH);
 		
-
+		/***
+		 * 'Login' button clicked.
+		 */
 		btnLogin.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
-			{
-				JPanel panel = panelLogin;
-				
-				CardLayout cl = (CardLayout) panelRightContent.getLayout();
-				JLabel label = lblCurrentPane;
-				JButton button = (JButton)e.getSource();
-				
-				println("Someone clicked button \'" + button.getName() +"\' or \'" + button.getText() + "\'");
-				printf("About to do cl.show(\"%s\", \"%s\")\n",panelRightContent.getName(),panel.getName());
-				
-				cl.show(panelRightContent, panel.getName());
-				label.setText(button.getText());
+			{				
+				modifyRightPane(panelLogin, e);
 			}
 		});
 		
+		/***
+		 * 'Modify ticket' button clicked.
+		 */
 		btnModifyTicket.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				JPanel panel = panelModifyTicket;
-
-				CardLayout cl = (CardLayout) panelRightContent.getLayout();
-				JLabel label = lblCurrentPane;
-				JButton button = (JButton)e.getSource();
-				
-				println("Someone clicked button \'" + button.getName() +"\' or \'" + button.getText() + "\'");
-				printf("About to do cl.show(\"%s\", \"%s\")\n",panelRightContent.getName(),panel.getName());
-				
-				cl.show(panelRightContent, panel.getName());
-				label.setText(button.getText());
+				modifyRightPane(panelModifyTicket, e);
 			}
 		});
 		
+		/***
+		 * 'Search' button clicked.
+		 */
 		btnSearch.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
-			{
-				JPanel panel = panelSearch;
-				
-				CardLayout cl = (CardLayout) panelRightContent.getLayout();
-				JLabel label = lblCurrentPane;
-				JButton button = (JButton)e.getSource();
-				
-				println("Someone clicked button \'" + button.getName() +"\' or \'" + button.getText() + "\'");
-				printf("About to do cl.show(\"%s\", \"%s\")\n",panelRightContent.getName(),panel.getName());
-				
-				cl.show(panelRightContent, panel.getName());
-				label.setText(button.getText());
+			{				
+				modifyRightPane(panelSearch, e);
 			}
 		});
 		
+		/***
+		 * 'New ticket' button clicked.
+		 */
 		btnNewTicket.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				JPanel panel = panelNewTicket;
-				
-				CardLayout cl = (CardLayout) panelRightContent.getLayout();
-				JLabel label = lblCurrentPane;
-				JButton button = (JButton)e.getSource();
-				
-				printf("Someone clicked button '%s' or '%s",button.getName(),button.getText());
-				printf("About to do cl.show('%s', '%s')\n",panelRightContent.getName(),panel.getName());
-				
-				cl.show(panelRightContent, panel.getName());
-				label.setText(button.getText());
+				modifyRightPane(panelNewTicket, e);
 			}
 		});
 		
+		/***
+		 * Someone presses 'ENTER' on our username field.
+		 */
+		textFieldUsername.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				textFieldPassword.requestFocus();
+			}
+		});
+		
+		/***
+		 * Someone presses 'ENTER' on our password field.
+		 */
+		textFieldPassword.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				btnLoginSubmit.doClick();
+			}
+
+		});
+		
+		/***
+		 * Someone clicks on our "submit" for password+username
+		 */
+		btnLoginSubmit.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent arg0)
+			{
+				String[] login = getLogin();
+				doLogin(login[0],login[1]);
+			}
+		});
 		
 		
 
