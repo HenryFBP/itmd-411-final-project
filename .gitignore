@@ -2,7 +2,6 @@
 
 *.lnk
 *.class
-<<<<<<< HEAD
 /lib/*
 login.txt
 .classpath
