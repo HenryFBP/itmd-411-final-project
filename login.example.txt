@@ -1,0 +1,2 @@
+localhost:3306,root,password
+goggle.ru:6666,toor,root

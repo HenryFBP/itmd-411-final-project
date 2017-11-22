@@ -19,7 +19,7 @@ import javax.swing.border.BevelBorder;
 
 public class TroubleTicketGUI
 {
-
+	
 	private static final int PADDING = 10;
 	private static final int DEFAULT_DIVIDER_WIDTH = 150;
 	
@@ -92,6 +92,18 @@ public class TroubleTicketGUI
 	 */
 	public static void main(String[] args)
 	{
+		
+		Dao dao = new Dao();
+		ArrayList<ArrayList<String>> logins = Dao.getLoginsFromFile("login.txt");
+		
+		int i = 0;
+		for (ArrayList<String> login : logins)
+		{
+			printf("Login is %d long and is %s",login.size(),login);
+			printf("Login %2d: '%s','%s','%s'",i,login.get(0),login.get(1),login.get(2));
+			i++;
+		}
+		
 		EventQueue.invokeLater(new Runnable()
 		{
 			public void run()
