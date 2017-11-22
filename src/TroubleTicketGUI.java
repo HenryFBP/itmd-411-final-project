@@ -131,17 +131,17 @@ public class TroubleTicketGUI
 		Dao dao = new Dao();
 		
 		frame = new JFrame();
-		frame.setBounds(100, 100, 694, 518);
+		frame.setBounds(100, 100, 785, 578);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		SpringLayout springLayout = new SpringLayout();
 		frame.getContentPane().setLayout(springLayout);
 		
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setName("splitPane");
+		springLayout.putConstraint(SOUTH, splitPane, 0, SOUTH, frame.getContentPane());
+		springLayout.putConstraint(EAST, splitPane, 0, EAST, frame.getContentPane());
 		springLayout.putConstraint(NORTH, splitPane, 0, NORTH, frame.getContentPane());
 		springLayout.putConstraint(WEST, splitPane, 0, WEST, frame.getContentPane());
-		springLayout.putConstraint(SOUTH, splitPane, 480, NORTH, frame.getContentPane());
-		springLayout.putConstraint(EAST, splitPane, 678, WEST, frame.getContentPane());
 		frame.getContentPane().add(splitPane, splitPane.getName());
 		
 		JPanel panelLeft = new JPanel();
@@ -157,8 +157,8 @@ public class TroubleTicketGUI
 		panelMenu.setLayout(sl_panelMenu);
 		
 		btnLogin = new JButton("Login");
-		sl_panelMenu.putConstraint(SpringLayout.NORTH, btnLogin, 5, SpringLayout.NORTH, panelMenu);
-		sl_panelMenu.putConstraint(SpringLayout.WEST, btnLogin, 10, SpringLayout.WEST, panelMenu);
+		sl_panelMenu.putConstraint(NORTH, btnLogin, 5, NORTH, panelMenu);
+		sl_panelMenu.putConstraint(WEST, btnLogin, 10, WEST, panelMenu);
 		btnLogin.setName(BUTTON_LOGIN_NAME);
 		panelMenu.add(btnLogin);
 
@@ -192,11 +192,11 @@ public class TroubleTicketGUI
 		panelRight.setLayout(sl_panelRight);
 
 		JPanel panelRightContent = new JPanel();
+		sl_panelRight.putConstraint(SOUTH, panelRightContent, 0, SOUTH, panelRight);
+		sl_panelRight.putConstraint(EAST, panelRightContent, 0, EAST, panelRight);
 		panelRightContent.setName(PANEL_RIGHT_CONTENT_NAME);
 		sl_panelRight.putConstraint(NORTH, panelRightContent, 27, NORTH, panelRight);
 		sl_panelRight.putConstraint(WEST, panelRightContent, 0, WEST, panelRight);
-		sl_panelRight.putConstraint(SOUTH, panelRightContent, 478, NORTH, panelRight);
-		sl_panelRight.putConstraint(EAST, panelRightContent, 517, WEST, panelRight);
 		panelRight.add(panelRightContent, panelRightContent.getName());
 		panelRightContent.setLayout(new CardLayout(0, 0));
 		
