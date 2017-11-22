@@ -1,2 +1,2 @@
-localhost:3306,root,password
-goggle.ru:6666,toor,root
+jdbc:mysql://localhost:3306/testdb,root,password
+jdbc:mysql://goggle.ru/bestdb:6666,toor,root
