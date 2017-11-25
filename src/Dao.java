@@ -18,12 +18,23 @@ public class Dao
 
 	private static final String DRIVER_CLASS_NAME = "com.mysql.jdbc.Driver";
 	
-	public static final int USERNAME_NOT_FOUND =  -0x0001;
-	public static final int PASSWORD_INCORRECT =  -0x0002;
+	public static final int 	USERNAME_NOT_FOUND =  -0x0001;
+	public static final String 	USERNAME_NOT_FOUND_S = "Username '%s' not found!";
+	
+	public static final int 	PASSWORD_INCORRECT =  -0x0002;
+	public static final String 	PASSWORD_INCORRECT_S = "Password for user '%s' incorrect!";
 	
 	
-	public static final int NORMAL_USER =  		0x0001;
-	public static final int ADMINISTRATOR =  	0x0002;
+	
+	public static final int 	NORMAL_USER =  		0x0001;
+	public static final String 	NORMAL_USER_S =  	"Welcome, user '%s'!";
+	
+	public static final int 	ADMINISTRATOR =  	0x0002;
+	public static final String 	ADMINISTRATOR_S =  	"Welcome, admin '%s'!";
+	
+
+	public static final String PASSWORD_COLUMN_NAME = "password";
+	public static final String USERTYPE_COLUMN_NAME = "user_type";
 	
 	private static Connection c = null;
 	private Integer USER_TYPE = null;
@@ -97,10 +108,11 @@ public class Dao
 	public int connect(String host, String user, String password)
 	{
 		int ret = -1;
+		
 		try
 		{
 			Class.forName(DRIVER_CLASS_NAME);
-			c = DriverManager.getConnection(host, user, password);
+			this.c = DriverManager.getConnection(host, user, password);
 			ret = 1;
 		}
 		catch (SQLException e)
@@ -109,15 +121,13 @@ public class Dao
 			System.out.println(e.getMessage());
 			e.printStackTrace();
 		}
-//		catch (ClassNotFoundException e)
-//		{
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		finally
+		catch(ClassNotFoundException e)
 		{
-			return ret;
+			System.out.printf("Could not find class '%s'!",DRIVER_CLASS_NAME);
+			e.printStackTrace();
 		}
+		System.out.printf("C = %s\n",c);
+		return ret;
 	}
 
 	/***
@@ -185,8 +195,9 @@ public class Dao
 	{
 		System.out.printf("Results for logging in user '%s' with password '%s'...\n",username,password);
 		int ret = 0;
+		int usertype = -1; //user = 1, admin = 2, etc...
 		
-		Statement s;
+		Statement s = null;
 		try
 		{
 			String query = String.format("SELECT * FROM %s WHERE username = '%s'",TABLE_USERS,username);
@@ -199,17 +210,39 @@ public class Dao
 			
 			System.out.printf("Got %d columns from that query!\n",cols);
 						
-			if(cols == 0) //if user doesn't exist
+			//if user doesn't exist
+			if(cols == 0) 
 			{
 				System.out.printf("User with name '%s' does not exist!\n",username);
 				return USERNAME_NOT_FOUND;
 			}
 			
+			rs.beforeFirst();
+			rs.next();
+			
+			//verify user has entered the right password
+			if(rs.getString(PASSWORD_COLUMN_NAME).compareTo((password)) == 0)
+			{
+				System.out.printf("Welcome, user '%s'!",username);
+				ret = rs.getInt(USERTYPE_COLUMN_NAME); //get user type
+				
+				switch(usertype)
+				{
+				case NORMAL_USER:
+					break;
+				}
+			}
+			else
+			{
+				//wrong password, right user...
+				ret = PASSWORD_INCORRECT;
+			}
+			
+			
 			ArrayList<String> formattedResults = formatResultSet(rs);
 			
 			printResultSet(formattedResults);
 			
-			//verify user has entered the right password
 			
 			
 		}
@@ -316,6 +349,13 @@ public class Dao
 		return ret;
 	}
 	
+	/***
+	 * 
+	 * @param rs 	A ResultSet object. It will record the current position that the 
+	 * 				ResultSet is in and will reset it back to that position once done
+	 * 				iterating.
+	 * @return The number of columns in the resultSet.
+	 */
 	public static int resultSetColumns(ResultSet rs)
 	{
 		
@@ -340,11 +380,37 @@ public class Dao
 			e.printStackTrace();
 		}
 		
+		try
+		{
+			rs.absolute(position); //go back to original position
+		}
+		catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
 		return cols;
 	}
 	
+	/***
+	 * 
+	 * @param rs
+	 * @return
+	 */
 	public static ArrayList<String> formatResultSet(ResultSet rs) 
 	{
+		int pos = -1;
+		try
+		{
+			pos = rs.getRow();		//record current place
+			rs.beforeFirst();		//set place to zero
+
+		}
+		catch (SQLException e1)
+		{
+			e1.printStackTrace();
+		} 
+		
+		
 		int largestColumn = getLargestColumn(rs);
 		String stringFormat = 	"%" + 13 + "s |";
 		String stringFormat2 =  "%" + 15 + "s |";
@@ -398,6 +464,15 @@ public class Dao
 			}
 
 			
+		}
+		catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
+		
+		try
+		{
+			rs.absolute(pos);	//reset to position it was at
 		}
 		catch (SQLException e)
 		{
