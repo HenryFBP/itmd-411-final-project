@@ -17,16 +17,18 @@ import java.awt.LayoutManager;
 
 public class TroubleTicketGUI
 {
-	private static       int 	DEFAULT_LOGIN_MODE = 0; //Which entry should be used? If this is too large, the last one will be used.
-	private static final String LOGINS_FILE_PATH = "login.txt"; //Where are our logins and passwords stored? This is for security and for not committing passwords to git.
+	public  static       int 	DEFAULT_LOGIN_MODE = 0; //Which entry should be used? If this is too large, the last one will be used.
+	public  static final String LOGINS_FILE_PATH = "login.txt"; //Where are our logins and passwords stored? This is for security and for not committing passwords to git.
 	
-	private static final int 	PADDING = 10;
-	private static final int 	DEFAULT_DIVIDER_WIDTH = 150;
+	public  static final int 	PADDING = 10;
+	public  static final int 	DEFAULT_DIVIDER_WIDTH = 150;
 	
-	private static final String NORTH = SpringLayout.NORTH;
-	private static final String EAST = SpringLayout.EAST;
-	private static final String SOUTH = SpringLayout.SOUTH;
-	private static final String WEST = SpringLayout.WEST;
+	public	static final String NORTH = SpringLayout.NORTH;
+	public 	static final String EAST = SpringLayout.EAST;
+	public 	static final String SOUTH = SpringLayout.SOUTH;
+	public 	static final String WEST = SpringLayout.WEST;
+	
+	public 	static final String NESW = "NESW";
 
 	private static final String BUTTON_LOGIN_NAME = "btnLogin";
 	private static final String BUTTON_NEW_TICKET_NAME = "btnNewTicket";
@@ -39,7 +41,23 @@ public class TroubleTicketGUI
 
 	
 	
-	
+	public static String oppositeDirection(String direction)
+	{
+		switch(direction.toUpperCase().charAt(0))
+		{
+			case 'N':
+				return SOUTH;
+			case 'E':
+				return WEST;
+			case 'S':
+				return NORTH;
+			case 'W':
+				return EAST;
+			default:
+				return null;
+		}
+		
+	}
 	
 	public static void printf(String s, Object... args)
 	{
@@ -83,6 +101,39 @@ public class TroubleTicketGUI
 	}
 	
 	
+	/**
+	 * @param buttonContainer The container that has the buttons inside of it.
+	 * 
+	 * With a bunch of buttons, they will be laid out using springLayout offset by 10px from eachother.
+	 */
+	public void formatButtons(JPanel buttonContainer)
+	{
+		//insert formatting for all buttons.
+		ArrayList<JButton> menuButtons = getButtonsFromJPanel(buttonContainer);
+		SpringLayout tempSL = (SpringLayout)buttonContainer.getLayout();
+		
+		
+		for(int i = 0; i < menuButtons.size(); i++)
+		{
+			JButton tempButton = menuButtons.get(i);
+			printf("menuButtons[%d] = %s\n",i,tempButton);
+			
+			tempSL.putConstraint(WEST, tempButton, PADDING, WEST, buttonContainer);
+			tempSL.putConstraint(EAST, tempButton, -PADDING, EAST, buttonContainer);
+			
+			if(i == 0) //first button aligns vertically w/ container
+			{
+				tempSL.putConstraint(NORTH, tempButton, PADDING, NORTH, buttonContainer);
+			}
+			else //all others align with south side of prev. button
+			{
+				JButton prevButton = menuButtons.get(i - 1);
+				tempSL.putConstraint(NORTH, tempButton, PADDING, SOUTH, prevButton);
+			}
+		}
+	}
+	
+	
 	public void modifyRightPane(JPanel jp, ActionEvent e)
 	{
 		JPanel panel = panelModifyTicket;
@@ -114,12 +165,34 @@ public class TroubleTicketGUI
 	
 	private void doLogin(String username, String password)
 	{
+//		lblloginer
+		lblLoginErrorMsg.setText("");
 		int result = Dao.login(username, password);
+		
 
-		if(result == Dao.NORMAL_USER || result == Dao.ADMINISTRATOR)
-		{
-			lblWhosLoggedIn.setText(username);
-		}
+			
+			if(result == Dao.NORMAL_USER || result == Dao.ADMINISTRATOR)
+			{//log them in!
+				if(result == Dao.NORMAL_USER)
+				{
+					lblWhosLoggedIn.setText(String.format(Dao.NORMAL_USER_S,username));
+				}
+				else if(result == Dao.ADMINISTRATOR)
+				{
+					lblWhosLoggedIn.setText(String.format(Dao.ADMINISTRATOR_S,username));
+				}
+				printf("Welcome, '%s'!",username);
+				lblWhosLoggedIn.setText(username);
+			}
+			if(result == Dao.PASSWORD_INCORRECT)
+			{
+				lblLoginErrorMsg.setText(String.format(Dao.PASSWORD_INCORRECT_S, username));
+			}
+			if(result == Dao.USERNAME_NOT_FOUND)
+			{
+				lblLoginErrorMsg.setText(String.format(Dao.USERNAME_NOT_FOUND_S, username));
+			}
+		
 		
 	}	
 	
@@ -163,6 +236,8 @@ public class TroubleTicketGUI
 	private JPanel panelLeft;
 	private JSplitPane splitPaneLeft;
 	private JPanel panelMenu;
+	private JLabel lblLoginErrorMsg;
+	private JPanel panelLoginErrorMsg;
 	
 	
 	/**
@@ -247,7 +322,7 @@ public class TroubleTicketGUI
 		
 		btnLogin = new JButton("Login");
 		sl_panelMenu.putConstraint(NORTH, btnLogin, 5, NORTH, panelMenu);
-		sl_panelMenu.putConstraint(WEST, btnLogin, 10, WEST, panelMenu);
+		sl_panelMenu.putConstraint(WEST, btnLogin, PADDING, WEST, panelMenu);
 		btnLogin.setName(BUTTON_LOGIN_NAME);
 		panelMenu.add(btnLogin);
 
@@ -315,6 +390,18 @@ public class TroubleTicketGUI
 
 		panelLogin.add(btnLoginSubmit);
 		
+		panelLoginErrorMsg = new JPanel();
+		sl_panelLogin.putConstraint(SpringLayout.NORTH, panelLoginErrorMsg, 21, SpringLayout.NORTH, panelLogin);
+		sl_panelLogin.putConstraint(SpringLayout.WEST, panelLoginErrorMsg, PADDING, SpringLayout.WEST, panelLogin);
+		sl_panelLogin.putConstraint(SpringLayout.SOUTH, panelLoginErrorMsg, 61, SpringLayout.NORTH, panelLogin);
+		sl_panelLogin.putConstraint(SpringLayout.EAST, panelLoginErrorMsg, -PADDING, SpringLayout.EAST, panelLogin);
+		panelLogin.add(panelLoginErrorMsg);
+		panelLoginErrorMsg.setLayout(new BorderLayout(0, 0));
+		
+		lblLoginErrorMsg = new JLabel("");
+		lblLoginErrorMsg.setHorizontalAlignment(SwingConstants.CENTER);
+		panelLoginErrorMsg.add(lblLoginErrorMsg, BorderLayout.CENTER);
+		
 		panelUsername = new JPanel();
 		sl_panelLogin.putConstraint(SpringLayout.WEST, btnLoginSubmit, 0, SpringLayout.WEST, panelUsername);
 		sl_panelLogin.putConstraint(SpringLayout.EAST, btnLoginSubmit, 0, SpringLayout.EAST, panelUsername);
@@ -334,14 +421,14 @@ public class TroubleTicketGUI
 		panelUsername.add(textFieldUsername);
 		textFieldUsername.setToolTipText("username");
 		sl_panelLogin.putConstraint(NORTH, textFieldUsername, 120, NORTH, panelLogin);
-		sl_panelLogin.putConstraint(WEST, textFieldUsername, 10, WEST, panelLogin);
+		sl_panelLogin.putConstraint(WEST, textFieldUsername, PADDING, WEST, panelLogin);
 		textFieldUsername.setColumns(10);
 		
 		panelPassword = new JPanel();
-		sl_panelLogin.putConstraint(SpringLayout.NORTH, panelPassword, 10, SpringLayout.SOUTH, panelUsername);
+		sl_panelLogin.putConstraint(SpringLayout.NORTH, panelPassword, PADDING, SpringLayout.SOUTH, panelUsername);
 		sl_panelLogin.putConstraint(SpringLayout.WEST, panelPassword, 0, SpringLayout.WEST, btnLoginSubmit);
 		sl_panelLogin.putConstraint(SpringLayout.SOUTH, panelPassword, 78, SpringLayout.SOUTH, panelUsername);
-		sl_panelLogin.putConstraint(SpringLayout.NORTH, btnLoginSubmit, 10, SpringLayout.SOUTH, panelPassword);
+		sl_panelLogin.putConstraint(SpringLayout.NORTH, btnLoginSubmit, PADDING, SpringLayout.SOUTH, panelPassword);
 		sl_panelLogin.putConstraint(SpringLayout.EAST, panelPassword, 0, SpringLayout.EAST, panelUsername);
 		panelLogin.add(panelPassword);
 		
@@ -349,7 +436,7 @@ public class TroubleTicketGUI
 		panelPassword.add(lblPassword);
 		
 		textFieldPassword = new JPasswordField();
-		textFieldPassword.setToolTipText("username");
+		textFieldPassword.setToolTipText("password");
 		textFieldPassword.setColumns(10);
 		panelPassword.add(textFieldPassword);
 		
@@ -363,7 +450,7 @@ public class TroubleTicketGUI
 		
 		lblCurrentPane = new JLabel("THIS_SHOULD_BE_AUTO_REPLACED");
 		panelRightTop.add(lblCurrentPane);
-		sl_panelNewTicket.putConstraint(NORTH, lblCurrentPane, 10, NORTH, panelNewTicket);
+		sl_panelNewTicket.putConstraint(NORTH, lblCurrentPane, PADDING, NORTH, panelNewTicket);
 		sl_panelNewTicket.putConstraint(EAST, lblCurrentPane, -230, EAST, panelNewTicket);
 		
 		btnNewTiket = new JButton("new TIKET??");
@@ -459,7 +546,7 @@ public class TroubleTicketGUI
 		});
 		
 		/***
-		 * Someone clicks on our "submit" for password+username
+		 * Someone clicks on our "submit" for password + username
 		 */
 		btnLoginSubmit.addActionListener(new ActionListener()
 		{
@@ -471,31 +558,9 @@ public class TroubleTicketGUI
 		});
 		
 		
-
-		
-		//insert formatting for all buttons
-		ArrayList<JButton> menuButtons = getButtonsFromJPanel(panelMenu);
-		SpringLayout tempSL = (SpringLayout)panelMenu.getLayout();
+		formatButtons(panelMenu);
 		
 		
-		for(int i = 0; i < menuButtons.size(); i++)
-		{
-			JButton tempButton = menuButtons.get(i);
-			printf("menuButtons[%d] = %s\n",i,tempButton);
-			
-			tempSL.putConstraint(WEST, tempButton, PADDING, WEST, panelMenu);
-			tempSL.putConstraint(EAST, tempButton, -PADDING, EAST, panelMenu);
-			
-			if(i == 0) //first button aligns vertically w/ container
-			{
-				tempSL.putConstraint(NORTH, tempButton, PADDING, NORTH, panelMenu);
-			}
-			else //all others align with south side of prev. button
-			{
-				JButton prevButton = menuButtons.get(i - 1);
-				tempSL.putConstraint(NORTH, tempButton, PADDING, SOUTH, prevButton);
-			}
-		}
 		
 		
 		
