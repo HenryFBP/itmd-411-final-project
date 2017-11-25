@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users
     password			VARCHAR(64) NOT NULL,
     email				VARCHAR(64) NOT NULL UNIQUE,
     name				VARCHAR(64) NOT NULL,
+    user_type			INTEGER		NOT NULL,
     
     
     PRIMARY KEY (PID, username)
@@ -20,10 +21,10 @@ CREATE TABLE IF NOT EXISTS tickets
 (
 	TID			INTEGER 		NOT NULL UNIQUE AUTO_INCREMENT,
     PID	 		INTEGER 		NOT NULL,
-    shortDesc	VARCHAR(100) 	NOT NULL,
+    shortDesc	TEXT		 	NOT NULL,
     category	VARCHAR(20) 	NOT NULL,
     severity	INTEGER 		NOT NULL,
-    longDesc	VARCHAR(1000),
+    longDesc	TEXT,
     startDate	DATE 			NOT NULL,
     endDate		DATE,
     
@@ -32,9 +33,25 @@ CREATE TABLE IF NOT EXISTS tickets
 );
 DESCRIBE tickets;
 
-INSERT INTO users VALUES(1,'HenryFBP','iamapassword','hpost@hawk.iit.edu','Henry Post');
-INSERT INTO users VALUES(2,'bolo','alsopassword','jbolo@hawk.iit.edu','Dartor Bolo');
-INSERT INTO users VALUES(3,'peter','passwordhere','peter@hawk.iit.edu','Peter');
+DROP TABLE IF EXISTS user_types;
+CREATE TABLE IF NOT EXISTS user_types
+(
+	user_type			INTEGER			NOT NULL UNIQUE,
+    user_type_string	VARCHAR(20)		NOT NULL,
+    
+    PRIMARY KEY (user_type)
+);
+
+
+
+INSERT INTO user_types VALUES(1, 'NORMAL_USER');
+INSERT INTO user_types VALUES(2, 'ADMINISTRATOR');
+
+INSERT INTO users VALUES(1,'HenryFBP','iamapassword','hpost@hawk.iit.edu','Henry Post',2);
+INSERT INTO users VALUES(2,'bolo','alsopassword','jbolo@hawk.iit.edu','Dartor Bolo',1);
+INSERT INTO users VALUES(3,'peter','passwordhere','peter@hawk.iit.edu','Peter',1);
+INSERT INTO users VALUES(4,'mike','mikerocks12345','mike@hawk.iit.edu','Michael Bernauer',1);
+INSERT INTO users VALUES(4,'max','password','max@hawk.iit.edu','Max Oellean',1);
 
 INSERT INTO tickets VALUES(1, 2, 'henry is asleep', 'other', 1, 'henry has fallen asleep at his desk', DATE(NOW()), null);
 INSERT INTO tickets VALUES(2, 1, 'bolo staring at me', 'other', 1, 'bolo is staring at me. I think he thinks i\'m asleep.', DATE(NOW()), null);
