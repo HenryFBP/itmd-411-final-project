@@ -11,12 +11,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -58,13 +61,16 @@ public class TroubleTicketGUI
 	public static final String WEST = SpringLayout.WEST;
 
 	public static final String NESW = "NESW";
+	public static final String PREFERRED_TIME_FORMAT = "MMM d, yyyy, hh:mm:ss aa";
 
 	private static final String BUTTON_LOGOUT_NAME = "btnLogout";
 	private static final String BUTTON_LOGIN_NAME = "btnLogin";
 	private static final String BUTTON_NEW_TICKET_NAME = "btnNewTicket";
 	private static final String BUTTON_MODIFY_TICKET_NAME = "btnModifyTicket";
 	private static final String BUTTON_SEARCH_NAME = "btnSearch";
-
+	
+	public static final String MUST_ENTER_DATE = "You must enter a date here.";
+	
 	private static final String PANEL_RIGHT_CONTENT_NAME = "panelRightContent";
 
 	private static final String NOT_LOGGED_IN = "Not currently logged in.";
@@ -501,8 +507,7 @@ public class TroubleTicketGUI
 	private JDateChooser dateStartedChooser;
 	private JPanel panelDateEnded;
 	private JLabel labelDateEnded;
-	private JDateChooser dateChooser;
-	private JButton btnScrungus;
+	private JDateChooser dateEndedChooser;
 
 	/**
 	 * Launch the application.
@@ -737,204 +742,191 @@ public class TroubleTicketGUI
 		lblCurrentPane = new JLabel("THIS_SHOULD_BE_AUTO_REPLACED");
 		panelRightTop.add(lblCurrentPane);
 		GridBagLayout gbl_panelNewTicket = new GridBagLayout();
-		gbl_panelNewTicket.columnWidths = new int[]{12, 179, 112, 105, 46, 137, 0, 0, 0};
-		gbl_panelNewTicket.rowHeights = new int[] {50, 60, 36, 55, 161, 121, 91, 0, 1};
-		gbl_panelNewTicket.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, Double.MIN_VALUE};
-		gbl_panelNewTicket.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gbl_panelNewTicket.columnWidths = new int[] { 12, 179, 112, 105, 46, 137, 0, 0, 0 };
+		gbl_panelNewTicket.rowHeights = new int[] { 50, 60, 36, 55, 161, 121, 91, 0, 1 };
+		gbl_panelNewTicket.columnWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, Double.MIN_VALUE };
+		gbl_panelNewTicket.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
 		panelNewTicket.setLayout(gbl_panelNewTicket);
-				
-						panelShortDesc = new JPanel();
-						GridBagConstraints gbc_panelShortDesc = new GridBagConstraints();
-						gbc_panelShortDesc.insets = new Insets(0, 0, 5, 5);
-						gbc_panelShortDesc.fill = GridBagConstraints.BOTH;
-						gbc_panelShortDesc.gridheight = 2;
-						gbc_panelShortDesc.gridx = 1;
-						gbc_panelShortDesc.gridy = 0;
-						panelNewTicket.add(panelShortDesc, gbc_panelShortDesc);
-						sl_panelShortDesc = new SpringLayout();
-						panelShortDesc.setLayout(sl_panelShortDesc);
-						
-								lblShortDesc = new JLabel("Short description / name");
-								sl_panelShortDesc.putConstraint(SpringLayout.NORTH, lblShortDesc, 10, SpringLayout.NORTH, panelShortDesc);
-								lblShortDesc.setHorizontalAlignment(SwingConstants.CENTER);
-								sl_panelShortDesc.putConstraint(SpringLayout.WEST, lblShortDesc, 10, SpringLayout.WEST, panelShortDesc);
-								sl_panelShortDesc.putConstraint(SpringLayout.EAST, lblShortDesc, -10, SpringLayout.EAST, panelShortDesc);
-								panelShortDesc.add(lblShortDesc);
-								
-										panelTextAreaShortDesc = new JPanel();
-										sl_panelShortDesc.putConstraint(SpringLayout.NORTH, panelTextAreaShortDesc, 10, SpringLayout.SOUTH,
-												lblShortDesc);
-										sl_panelShortDesc.putConstraint(SpringLayout.WEST, panelTextAreaShortDesc, 10, SpringLayout.WEST,
-												panelShortDesc);
-										sl_panelShortDesc.putConstraint(SpringLayout.EAST, panelTextAreaShortDesc, -10, SpringLayout.EAST,
-												panelShortDesc);
-										panelTextAreaShortDesc.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-										sl_panelShortDesc.putConstraint(SpringLayout.SOUTH, panelTextAreaShortDesc, -10, SpringLayout.SOUTH,
-												panelShortDesc);
-										panelShortDesc.add(panelTextAreaShortDesc);
-										panelTextAreaShortDesc.setLayout(new BorderLayout(0, 0));
-										
-												textAreaShortDesc = new JTextArea();
-												panelTextAreaShortDesc.add(textAreaShortDesc);
-												sl_panelShortDesc.putConstraint(SpringLayout.NORTH, textAreaShortDesc, 6, SpringLayout.SOUTH, lblShortDesc);
-												sl_panelShortDesc.putConstraint(SpringLayout.WEST, textAreaShortDesc, 10, SpringLayout.WEST, panelShortDesc);
-												sl_panelShortDesc.putConstraint(SpringLayout.SOUTH, textAreaShortDesc, -10, SpringLayout.SOUTH, panelShortDesc);
-												sl_panelShortDesc.putConstraint(SpringLayout.EAST, textAreaShortDesc, -10, SpringLayout.EAST, panelShortDesc);
-												textAreaShortDesc.setColumns(10);
-				
-						panelCategory = new JPanel();
-						GridBagConstraints gbc_panelCategory = new GridBagConstraints();
-						gbc_panelCategory.gridwidth = 2;
-						gbc_panelCategory.fill = GridBagConstraints.BOTH;
-						gbc_panelCategory.insets = new Insets(0, 0, 5, 5);
-						gbc_panelCategory.gridx = 2;
-						gbc_panelCategory.gridy = 0;
-						panelNewTicket.add(panelCategory, gbc_panelCategory);
-						panelCategory.setLayout(new BorderLayout(0, 0));
-						
-								comboBoxCategory = new JComboBox<Object>();
-								comboBoxCategory.setFont(new Font("Dialog", Font.BOLD, 15));
-								comboBoxCategory.setModel(new DefaultComboBoxModel(new String[] {"THESE", "SHOULD", "BE", "AUTO", "REPLACED", "FROM", "THE", "CATEGORIES", "TABLE"}));
-								panelCategory.add(comboBoxCategory);
-								
-								labelCategory = new JLabel("Category");
-								labelCategory.setHorizontalAlignment(SwingConstants.CENTER);
-								panelCategory.add(labelCategory, BorderLayout.NORTH);
-								
-										setupCategories(comboBoxCategory); //grab list of possible categories from server's category table
-				
-				panelDateStarted = new JPanel();
-				GridBagConstraints gbc_panelDateStarted = new GridBagConstraints();
-				gbc_panelDateStarted.gridwidth = 2;
-				gbc_panelDateStarted.anchor = GridBagConstraints.NORTHWEST;
-				gbc_panelDateStarted.insets = new Insets(5, 5, 5, 5);
-				gbc_panelDateStarted.gridx = 4;
-				gbc_panelDateStarted.gridy = 0;
-				panelNewTicket.add(panelDateStarted, gbc_panelDateStarted);
-				panelDateStarted.setLayout(new BorderLayout(0, 0));
-				
-				dateStartedChooser = new JDateChooser();
-				dateStartedChooser.setDateFormatString("MMM d, yyyy, hh:mm:ss aa");
-				panelDateStarted.add(dateStartedChooser);
-				
-				labelDateStarted = new JLabel("Date started");
-				labelDateStarted.setHorizontalAlignment(SwingConstants.CENTER);
-				panelDateStarted.add(labelDateStarted, BorderLayout.NORTH);
-				
-				panelSeverity = new JPanel();
-				GridBagConstraints gbc_panelSeverity = new GridBagConstraints();
-				gbc_panelSeverity.fill = GridBagConstraints.HORIZONTAL;
-				gbc_panelSeverity.gridwidth = 2;
-				gbc_panelSeverity.insets = new Insets(0, 0, 5, 5);
-				gbc_panelSeverity.gridx = 2;
-				gbc_panelSeverity.gridy = 1;
-				panelNewTicket.add(panelSeverity, gbc_panelSeverity);
-				panelSeverity.setLayout(new BorderLayout(0, 0));
-				
-				labelSeverity = new JLabel("Severity");
-				labelSeverity.setHorizontalAlignment(SwingConstants.CENTER);
-				panelSeverity.add(labelSeverity, BorderLayout.NORTH);
-				
-				comboBoxSeverity = new JComboBox<String>();
-				comboBoxSeverity.setModel(new DefaultComboBoxModel(new String[] {"THESE", "SHOULD", "BE", "POPULATED", "WITH", "ENTRIES", "FROM", "THE", "SEVERITY", "TABLE"}));
-				comboBoxSeverity.setFont(new Font("Dialog", Font.BOLD, 15));
-				panelSeverity.add(comboBoxSeverity, BorderLayout.CENTER);
-				
-				panelSeverity.setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{comboBoxSeverity, labelSeverity}));
-				setupSeverities(comboBoxSeverity); //grab list of possible severities from server's severity table
-				
-				panelDateEnded = new JPanel();
-				GridBagConstraints gbc_panelDateEnded = new GridBagConstraints();
-				gbc_panelDateEnded.anchor = GridBagConstraints.WEST;
-				gbc_panelDateEnded.gridwidth = 2;
-				gbc_panelDateEnded.insets = new Insets(5, 5, 5, 5);
-				gbc_panelDateEnded.gridx = 4;
-				gbc_panelDateEnded.gridy = 1;
-				panelNewTicket.add(panelDateEnded, gbc_panelDateEnded);
-				panelDateEnded.setLayout(new BorderLayout(0, 0));
-				
-				dateChooser = new JDateChooser();
-				dateChooser.setDateFormatString("MMM d, yyyy, hh:mm:ss aa");
-				panelDateEnded.add(dateChooser, BorderLayout.CENTER);
-				
-				labelDateEnded = new JLabel("Date ended");
-				labelDateEnded.setHorizontalAlignment(SwingConstants.CENTER);
-				panelDateEnded.add(labelDateEnded, BorderLayout.NORTH);
-						
-								panelLongDesc = new JPanel();
-								GridBagConstraints gbc_panelLongDesc = new GridBagConstraints();
-								gbc_panelLongDesc.gridheight = 3;
-								gbc_panelLongDesc.fill = GridBagConstraints.BOTH;
-								gbc_panelLongDesc.insets = new Insets(0, 0, 5, 5);
-								gbc_panelLongDesc.gridwidth = 6;
-								gbc_panelLongDesc.gridx = 1;
-								gbc_panelLongDesc.gridy = 2;
-								panelNewTicket.add(panelLongDesc, gbc_panelLongDesc);
-								sl_panelLongDesc = new SpringLayout();
-								panelLongDesc.setLayout(sl_panelLongDesc);
-								
-										lblLongDescription = new JLabel("Long description");
-										sl_panelLongDesc.putConstraint(SpringLayout.NORTH, lblLongDescription, 0, SpringLayout.NORTH, panelLongDesc);
-										sl_panelLongDesc.putConstraint(SpringLayout.WEST, lblLongDescription, 10, SpringLayout.WEST, panelLongDesc);
-										sl_panelLongDesc.putConstraint(SpringLayout.EAST, lblLongDescription, -10, SpringLayout.EAST, panelLongDesc);
-										lblLongDescription.setHorizontalAlignment(SwingConstants.CENTER);
-										panelLongDesc.add(lblLongDescription);
-										
-												panelTextAreaLongDesc = new JPanel();
-												panelTextAreaLongDesc.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-												sl_panelLongDesc.putConstraint(SpringLayout.NORTH, panelTextAreaLongDesc, 10, SpringLayout.SOUTH,
-														lblLongDescription);
-												sl_panelLongDesc.putConstraint(SpringLayout.SOUTH, panelTextAreaLongDesc, -10, SpringLayout.SOUTH,
-														panelLongDesc);
-												sl_panelLongDesc.putConstraint(SpringLayout.WEST, panelTextAreaLongDesc, 10, SpringLayout.WEST, panelLongDesc);
-												sl_panelLongDesc.putConstraint(SpringLayout.EAST, panelTextAreaLongDesc, -10, SpringLayout.EAST, panelLongDesc);
-												panelLongDesc.add(panelTextAreaLongDesc);
-												panelTextAreaLongDesc.setLayout(new BorderLayout(0, 0));
-												
-														scrollPaneLongDesc = new JScrollPane();
-														panelTextAreaLongDesc.add(scrollPaneLongDesc, BorderLayout.CENTER);
-														
-																textAreaLongDesc = new JTextArea();
-																scrollPaneLongDesc.setViewportView(textAreaLongDesc);
-																textAreaLongDesc.setColumns(10);
-										
-												btnSubmitNewTicket = new JButton("Submit new ticket");
-												GridBagConstraints gbc_btnSubmitNewTicket = new GridBagConstraints();
-												gbc_btnSubmitNewTicket.fill = GridBagConstraints.BOTH;
-												gbc_btnSubmitNewTicket.gridwidth = 2;
-												gbc_btnSubmitNewTicket.insets = new Insets(0, 0, 5, 5);
-												gbc_btnSubmitNewTicket.gridx = 2;
-												gbc_btnSubmitNewTicket.gridy = 5;
-												panelNewTicket.add(btnSubmitNewTicket, gbc_btnSubmitNewTicket);
-												btnSubmitNewTicket.setName("btnNewTiket");
-												
-														btnSubmitNewTicket.addActionListener(new ActionListener()
-														{
-															/***
-															 * Someone clicks "submit new ticket"
-															 */
-															public void actionPerformed(ActionEvent arg0)
-															{
-																
-																dao.submitTicket(dao.USER_NAME,						//username
-																				textAreaShortDesc.getText(), 		//short desc
-																				textAreaLongDesc.getText(),			//long desc
-																				(Integer)Integer.parseInt(((String)comboBoxCategory.getSelectedItem()).substring(0, 1)),	//1st char of category dropdown as Integer
-																				(Integer)Integer.parseInt(((String)comboBoxSeverity.getSelectedItem()).substring(0, 1)),	//1st char of severity dropdown as Integer
-																				null,
-																				null);
-															}
-														});
-								
-										panelButtonSubmitNewTicket = new JPanel();
-										GridBagConstraints gbc_panelButtonSubmitNewTicket = new GridBagConstraints();
-										gbc_panelButtonSubmitNewTicket.insets = new Insets(0, 0, 5, 5);
-										gbc_panelButtonSubmitNewTicket.fill = GridBagConstraints.BOTH;
-										gbc_panelButtonSubmitNewTicket.gridwidth = 2;
-										gbc_panelButtonSubmitNewTicket.gridx = 2;
-										gbc_panelButtonSubmitNewTicket.gridy = 6;
-										panelNewTicket.add(panelButtonSubmitNewTicket, gbc_panelButtonSubmitNewTicket);
-												panelButtonSubmitNewTicket.setLayout(new BorderLayout(0, 0));
+
+		panelShortDesc = new JPanel();
+		GridBagConstraints gbc_panelShortDesc = new GridBagConstraints();
+		gbc_panelShortDesc.insets = new Insets(0, 0, 5, 5);
+		gbc_panelShortDesc.fill = GridBagConstraints.BOTH;
+		gbc_panelShortDesc.gridheight = 2;
+		gbc_panelShortDesc.gridx = 1;
+		gbc_panelShortDesc.gridy = 0;
+		panelNewTicket.add(panelShortDesc, gbc_panelShortDesc);
+		sl_panelShortDesc = new SpringLayout();
+		panelShortDesc.setLayout(sl_panelShortDesc);
+
+		lblShortDesc = new JLabel("Short description / name");
+		sl_panelShortDesc.putConstraint(SpringLayout.NORTH, lblShortDesc, 10, SpringLayout.NORTH, panelShortDesc);
+		lblShortDesc.setHorizontalAlignment(SwingConstants.CENTER);
+		sl_panelShortDesc.putConstraint(SpringLayout.WEST, lblShortDesc, 10, SpringLayout.WEST, panelShortDesc);
+		sl_panelShortDesc.putConstraint(SpringLayout.EAST, lblShortDesc, -10, SpringLayout.EAST, panelShortDesc);
+		panelShortDesc.add(lblShortDesc);
+
+		panelTextAreaShortDesc = new JPanel();
+		sl_panelShortDesc.putConstraint(SpringLayout.NORTH, panelTextAreaShortDesc, 10, SpringLayout.SOUTH,
+				lblShortDesc);
+		sl_panelShortDesc.putConstraint(SpringLayout.WEST, panelTextAreaShortDesc, 10, SpringLayout.WEST,
+				panelShortDesc);
+		sl_panelShortDesc.putConstraint(SpringLayout.EAST, panelTextAreaShortDesc, -10, SpringLayout.EAST,
+				panelShortDesc);
+		panelTextAreaShortDesc.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
+		sl_panelShortDesc.putConstraint(SpringLayout.SOUTH, panelTextAreaShortDesc, -10, SpringLayout.SOUTH,
+				panelShortDesc);
+		panelShortDesc.add(panelTextAreaShortDesc);
+		panelTextAreaShortDesc.setLayout(new BorderLayout(0, 0));
+
+		textAreaShortDesc = new JTextArea();
+		panelTextAreaShortDesc.add(textAreaShortDesc);
+		sl_panelShortDesc.putConstraint(SpringLayout.NORTH, textAreaShortDesc, 6, SpringLayout.SOUTH, lblShortDesc);
+		sl_panelShortDesc.putConstraint(SpringLayout.WEST, textAreaShortDesc, 10, SpringLayout.WEST, panelShortDesc);
+		sl_panelShortDesc.putConstraint(SpringLayout.SOUTH, textAreaShortDesc, -10, SpringLayout.SOUTH, panelShortDesc);
+		sl_panelShortDesc.putConstraint(SpringLayout.EAST, textAreaShortDesc, -10, SpringLayout.EAST, panelShortDesc);
+		textAreaShortDesc.setColumns(10);
+
+		panelCategory = new JPanel();
+		GridBagConstraints gbc_panelCategory = new GridBagConstraints();
+		gbc_panelCategory.gridwidth = 2;
+		gbc_panelCategory.fill = GridBagConstraints.BOTH;
+		gbc_panelCategory.insets = new Insets(0, 0, 5, 5);
+		gbc_panelCategory.gridx = 2;
+		gbc_panelCategory.gridy = 0;
+		panelNewTicket.add(panelCategory, gbc_panelCategory);
+		panelCategory.setLayout(new BorderLayout(0, 0));
+
+		comboBoxCategory = new JComboBox<Object>();
+		comboBoxCategory.setFont(new Font("Dialog", Font.BOLD, 15));
+		comboBoxCategory.setModel(new DefaultComboBoxModel(
+				new String[] { "THESE", "SHOULD", "BE", "AUTO", "REPLACED", "FROM", "THE", "CATEGORIES", "TABLE" }));
+		panelCategory.add(comboBoxCategory);
+
+		labelCategory = new JLabel("Category");
+		labelCategory.setHorizontalAlignment(SwingConstants.CENTER);
+		panelCategory.add(labelCategory, BorderLayout.NORTH);
+
+		setupCategories(comboBoxCategory); // grab list of possible categories
+											// from server's category table
+
+		panelDateStarted = new JPanel();
+		GridBagConstraints gbc_panelDateStarted = new GridBagConstraints();
+		gbc_panelDateStarted.gridwidth = 2;
+		gbc_panelDateStarted.anchor = GridBagConstraints.NORTHWEST;
+		gbc_panelDateStarted.insets = new Insets(5, 5, 5, 5);
+		gbc_panelDateStarted.gridx = 4;
+		gbc_panelDateStarted.gridy = 0;
+		panelNewTicket.add(panelDateStarted, gbc_panelDateStarted);
+		panelDateStarted.setLayout(new BorderLayout(0, 0));
+
+		dateStartedChooser = new JDateChooser();
+		dateStartedChooser.setDateFormatString(PREFERRED_TIME_FORMAT);
+		panelDateStarted.add(dateStartedChooser);
+
+		labelDateStarted = new JLabel("Date started");
+		labelDateStarted.setHorizontalAlignment(SwingConstants.CENTER);
+		panelDateStarted.add(labelDateStarted, BorderLayout.NORTH);
+
+		panelSeverity = new JPanel();
+		GridBagConstraints gbc_panelSeverity = new GridBagConstraints();
+		gbc_panelSeverity.fill = GridBagConstraints.HORIZONTAL;
+		gbc_panelSeverity.gridwidth = 2;
+		gbc_panelSeverity.insets = new Insets(0, 0, 5, 5);
+		gbc_panelSeverity.gridx = 2;
+		gbc_panelSeverity.gridy = 1;
+		panelNewTicket.add(panelSeverity, gbc_panelSeverity);
+		panelSeverity.setLayout(new BorderLayout(0, 0));
+
+		labelSeverity = new JLabel("Severity");
+		labelSeverity.setHorizontalAlignment(SwingConstants.CENTER);
+		panelSeverity.add(labelSeverity, BorderLayout.NORTH);
+
+		comboBoxSeverity = new JComboBox<String>();
+		comboBoxSeverity.setModel(new DefaultComboBoxModel(new String[] { "THESE", "SHOULD", "BE", "POPULATED", "WITH",
+				"ENTRIES", "FROM", "THE", "SEVERITY", "TABLE" }));
+		comboBoxSeverity.setFont(new Font("Dialog", Font.BOLD, 15));
+		panelSeverity.add(comboBoxSeverity, BorderLayout.CENTER);
+
+		panelSeverity.setFocusTraversalPolicy(
+				new FocusTraversalOnArray(new Component[] { comboBoxSeverity, labelSeverity }));
+		setupSeverities(comboBoxSeverity); // grab list of possible severities
+											// from server's severity table
+
+		panelDateEnded = new JPanel();
+		GridBagConstraints gbc_panelDateEnded = new GridBagConstraints();
+		gbc_panelDateEnded.anchor = GridBagConstraints.WEST;
+		gbc_panelDateEnded.gridwidth = 2;
+		gbc_panelDateEnded.insets = new Insets(5, 5, 5, 5);
+		gbc_panelDateEnded.gridx = 4;
+		gbc_panelDateEnded.gridy = 1;
+		panelNewTicket.add(panelDateEnded, gbc_panelDateEnded);
+		panelDateEnded.setLayout(new BorderLayout(0, 0));
+
+		dateEndedChooser = new JDateChooser();
+		dateEndedChooser.setDateFormatString("MMM d, yyyy, hh:mm:ss aa");
+		panelDateEnded.add(dateEndedChooser, BorderLayout.CENTER);
+
+		labelDateEnded = new JLabel("Date ended");
+		labelDateEnded.setHorizontalAlignment(SwingConstants.CENTER);
+		panelDateEnded.add(labelDateEnded, BorderLayout.NORTH);
+
+		panelLongDesc = new JPanel();
+		GridBagConstraints gbc_panelLongDesc = new GridBagConstraints();
+		gbc_panelLongDesc.gridheight = 3;
+		gbc_panelLongDesc.fill = GridBagConstraints.BOTH;
+		gbc_panelLongDesc.insets = new Insets(0, 0, 5, 5);
+		gbc_panelLongDesc.gridwidth = 6;
+		gbc_panelLongDesc.gridx = 1;
+		gbc_panelLongDesc.gridy = 2;
+		panelNewTicket.add(panelLongDesc, gbc_panelLongDesc);
+		sl_panelLongDesc = new SpringLayout();
+		panelLongDesc.setLayout(sl_panelLongDesc);
+
+		lblLongDescription = new JLabel("Long description");
+		sl_panelLongDesc.putConstraint(SpringLayout.NORTH, lblLongDescription, 0, SpringLayout.NORTH, panelLongDesc);
+		sl_panelLongDesc.putConstraint(SpringLayout.WEST, lblLongDescription, 10, SpringLayout.WEST, panelLongDesc);
+		sl_panelLongDesc.putConstraint(SpringLayout.EAST, lblLongDescription, -10, SpringLayout.EAST, panelLongDesc);
+		lblLongDescription.setHorizontalAlignment(SwingConstants.CENTER);
+		panelLongDesc.add(lblLongDescription);
+
+		panelTextAreaLongDesc = new JPanel();
+		panelTextAreaLongDesc.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
+		sl_panelLongDesc.putConstraint(SpringLayout.NORTH, panelTextAreaLongDesc, 10, SpringLayout.SOUTH,
+				lblLongDescription);
+		sl_panelLongDesc.putConstraint(SpringLayout.SOUTH, panelTextAreaLongDesc, -10, SpringLayout.SOUTH,
+				panelLongDesc);
+		sl_panelLongDesc.putConstraint(SpringLayout.WEST, panelTextAreaLongDesc, 10, SpringLayout.WEST, panelLongDesc);
+		sl_panelLongDesc.putConstraint(SpringLayout.EAST, panelTextAreaLongDesc, -10, SpringLayout.EAST, panelLongDesc);
+		panelLongDesc.add(panelTextAreaLongDesc);
+		panelTextAreaLongDesc.setLayout(new BorderLayout(0, 0));
+
+		scrollPaneLongDesc = new JScrollPane();
+		panelTextAreaLongDesc.add(scrollPaneLongDesc, BorderLayout.CENTER);
+
+		textAreaLongDesc = new JTextArea();
+		scrollPaneLongDesc.setViewportView(textAreaLongDesc);
+		textAreaLongDesc.setColumns(10);
+
+		btnSubmitNewTicket = new JButton("Submit new ticket");
+		GridBagConstraints gbc_btnSubmitNewTicket = new GridBagConstraints();
+		gbc_btnSubmitNewTicket.fill = GridBagConstraints.BOTH;
+		gbc_btnSubmitNewTicket.gridwidth = 2;
+		gbc_btnSubmitNewTicket.insets = new Insets(0, 0, 5, 5);
+		gbc_btnSubmitNewTicket.gridx = 2;
+		gbc_btnSubmitNewTicket.gridy = 5;
+		panelNewTicket.add(btnSubmitNewTicket, gbc_btnSubmitNewTicket);
+		btnSubmitNewTicket.setName("btnNewTiket");
+
+		panelButtonSubmitNewTicket = new JPanel();
+		GridBagConstraints gbc_panelButtonSubmitNewTicket = new GridBagConstraints();
+		gbc_panelButtonSubmitNewTicket.insets = new Insets(0, 0, 5, 5);
+		gbc_panelButtonSubmitNewTicket.fill = GridBagConstraints.BOTH;
+		gbc_panelButtonSubmitNewTicket.gridwidth = 2;
+		gbc_panelButtonSubmitNewTicket.gridx = 2;
+		gbc_panelButtonSubmitNewTicket.gridy = 6;
+		panelNewTicket.add(panelButtonSubmitNewTicket, gbc_panelButtonSubmitNewTicket);
+		panelButtonSubmitNewTicket.setLayout(new BorderLayout(0, 0));
 		panelSearch.setLayout(new BorderLayout(0, 0));
 
 		splitPaneSearch = new JSplitPane();
@@ -1046,7 +1038,40 @@ public class TroubleTicketGUI
 					comboBoxField.addItem(Dao.VALID_SEARCH_FIELDS_TICKETS_S[i]);
 				}
 
+				
+				
+				ResultSet rs = null; //get results for table
+				
+				try
+				{
+					//execute default query to populate search pane
+					System.out.printf("About to execute this query to populate our default results view: \n'%s'\n",SQLC.SEARCH_PANE_DEFAULT_QUERY.toString());
+					rs = dao.c.createStatement().executeQuery(SQLC.SEARCH_PANE_DEFAULT_QUERY.toString());
+				}
+				catch (SQLException e1)
+				{
+					e1.printStackTrace();
+				}
+				
+				
+				ArrayList<ArrayList<Object>> data = dao.resultSetToList(rs); //get 2d list of data
+				ArrayList<ArrayList<Object>> dataHeaders = dao.resultSetMetadataToList(rs);
+				
+				
+				
+				Object[][] dataA = data.stream().map(aRow -> aRow.toArray(new Object[0])).toArray(Object[][]::new);
+				//ArrayList<ArrayList<Object>> converted to Object[][]
+				
+				Object[] dataHeadersA = dataHeaders.get(0).toArray();
+				//0th header converted to Object[]
+				
 				// set up the table to have a default view of all notes...
+				DefaultTableModel dtm = new DefaultTableModel(dataA,dataHeadersA);
+
+				
+				tableResults.setModel(dtm);
+				
+//				dao.resultSetToList(rs)
 
 			}
 
@@ -1120,6 +1145,47 @@ public class TroubleTicketGUI
 
 			}
 		});		
+		
+		btnSubmitNewTicket.addActionListener(new ActionListener()
+		{
+			/***
+			 * Someone clicks "submit new ticket"
+			 */
+			public void actionPerformed(ActionEvent arg0)
+			{
+
+				dateStartedChooser.setBorder(borderDefault);
+				dateEndedChooser.setBorder(borderDefault);  //reset borders
+				
+				dateStartedChooser.setToolTipText(PREFERRED_TIME_FORMAT);
+				dateEndedChooser.setToolTipText(PREFERRED_TIME_FORMAT);
+				dateStartedChooser.getCalendarButton().setToolTipText(PREFERRED_TIME_FORMAT); 
+				dateEndedChooser.getCalendarButton().setToolTipText(PREFERRED_TIME_FORMAT); //reset tooltips
+				dateStartedChooser.getDateEditor().getUiComponent().setToolTipText(PREFERRED_TIME_FORMAT);
+				dateStartedChooser.getDateEditor().getUiComponent().setToolTipText(PREFERRED_TIME_FORMAT);
+				
+				
+				Boolean allFormsOK = true;
+				if(dateStartedChooser.getDate() == null) //if start date isn't filled out, complain
+				{
+					allFormsOK = false;
+					dateStartedChooser.setBorder(borderBad);
+					dateStartedChooser.requestFocus();
+					dateStartedChooser.getDateEditor().getUiComponent().setToolTipText(MUST_ENTER_DATE + " (" + PREFERRED_TIME_FORMAT + ")");
+				}
+				
+				if(allFormsOK)
+				{
+					dao.submitTicket(dao.USER_NAME,						//username
+									textAreaShortDesc.getText(), 		//short desc
+									textAreaLongDesc.getText(),			//long desc
+									(Integer)Integer.parseInt(((String)comboBoxCategory.getSelectedItem()).substring(0, 1)),	//1st char of category dropdown as Integer
+									(Integer)Integer.parseInt(((String)comboBoxSeverity.getSelectedItem()).substring(0, 1)),	//1st char of severity dropdown as Integer
+									dateStartedChooser.getDate(),
+									dateEndedChooser.getDate());
+				}
+			}
+		});
 
 		formatButtons(panelMenu);
 
