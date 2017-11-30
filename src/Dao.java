@@ -6,26 +6,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import java.sql.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import javax.swing.text.DateFormatter;
 
 public class Dao
 {
-
-	private static final String TABLE_USERS = "users";
-	private static final String TABLE_TICKETS = "tickets";
-	private static final String TABLE_USER_TYPES = "user_types";
-	
-	public static final String PASSWORD_COLUMN_NAME = "password";
-	public static final String USERTYPE_COLUMN_NAME = "user_type";
-	public static final String USER_ID_COLUMN_NAME = "PID";
-	public static final String SHORT_DESC_COLUMN_NAME = "shortDesc";
-	public static final String LONG_DESC_COLUMN_NAME = "longDesc";
-	public static final String CATEGORY_COLUMN_NAME = "category";
-	public static final String SEVERITY_COLUMN_NAME = "severity";
-	public static final String START_DATE_COLUMN_NAME = "startDate";
-	public static final String END_DATE_COLUMN_NAME = "endDate";
-	
-
-	
 	
 	private static final String DRIVER_CLASS_NAME = "com.mysql.jdbc.Driver";
 
@@ -226,7 +214,7 @@ public class Dao
 		Statement s = null;
 		try
 		{
-			String query = String.format("SELECT * FROM %s WHERE username = '%s'", TABLE_USERS, username);
+			String query = String.format("SELECT * FROM %s WHERE username = '%s'", SQLC.TABLE_USERS, username);
 			s = c.createStatement();
 
 			System.out.printf("About to execute '%s'\n", query);
@@ -247,11 +235,11 @@ public class Dao
 			rs.next();
 
 			// verify user has entered the right password
-			if (rs.getString(PASSWORD_COLUMN_NAME).compareTo((password)) == 0)
+			if (rs.getString(SQLC.PASSWORD_COLUMN_NAME.s()).compareTo((password)) == 0)
 			{
 				System.out.printf("Welcome, user '%s'!\n", username);
-				ret = rs.getInt(USERTYPE_COLUMN_NAME); // get user type
-				tempID = rs.getInt(USER_ID_COLUMN_NAME); //get user id for later
+				ret = rs.getInt(SQLC.USERTYPE_COLUMN_NAME.s()); // get user type
+				tempID = rs.getInt(SQLC.USER_ID_COLUMN_NAME.s()); //get user id for later
 
 				switch (usertype)
 				{
@@ -535,8 +523,13 @@ public class Dao
 	public void submitTicket(String name, String shortDesc, String longDesc, Integer category, Integer severity,
 			Date startDate, Date endDate)
 	{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat(SQLC.SQL_DATE_FORMAT.s());
 		String query = "";
-				
+
+		String sDate = sdf.format(startDate);
+		java.sql.Date ed = (java.sql.Date) endDate;
+		
 		try
 		{
 			Statement s = c.createStatement();
@@ -545,8 +538,8 @@ public class Dao
 					SQLC.TABLE_TICKETS, SQLC.USER_ID_COLUMN_NAME, SQLC.SHORT_DESC_COLUMN_NAME,
 					SQLC.LONG_DESC_COLUMN_NAME, SQLC.CATEGORY_ID_COLUMN_NAME, SQLC.SEVERITY_COLUMN_NAME, SQLC.START_DATE_COLUMN_NAME);
 								  
-			query += String.format("VALUES (%d, '%s', '%s', %d, %d, '%s');",
-								  this.USER_ID,  shortDesc,   longDesc,   category,   severity,  startDate);
+			query += String.format("VALUES (%d, '%s', '%s', %d, %d, STR_TO_DATE('%s','%s'));",
+								  this.USER_ID,  shortDesc,   longDesc,   category,   severity,  sDate, SQLC.SQL_STR_TO_DATE_FORMAT.s());
 			
 			System.out.printf("About to insert a record with the following SQL statement:\n '%s'\n",query);
 			
