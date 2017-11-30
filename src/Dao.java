@@ -12,7 +12,21 @@ public class Dao
 
 	private static final String TABLE_USERS = "users";
 	private static final String TABLE_TICKETS = "tickets";
+	private static final String TABLE_USER_TYPES = "user_types";
+	
+	public static final String PASSWORD_COLUMN_NAME = "password";
+	public static final String USERTYPE_COLUMN_NAME = "user_type";
+	public static final String USER_ID_COLUMN_NAME = "PID";
+	public static final String SHORT_DESC_COLUMN_NAME = "shortDesc";
+	public static final String LONG_DESC_COLUMN_NAME = "longDesc";
+	public static final String CATEGORY_COLUMN_NAME = "category";
+	public static final String SEVERITY_COLUMN_NAME = "severity";
+	public static final String START_DATE_COLUMN_NAME = "startDate";
+	public static final String END_DATE_COLUMN_NAME = "endDate";
+	
 
+	
+	
 	private static final String DRIVER_CLASS_NAME = "com.mysql.jdbc.Driver";
 
 	public static final int USERNAME_NOT_FOUND = -0x0001;
@@ -27,9 +41,6 @@ public class Dao
 	public static final int ADMINISTRATOR = 0x0002;
 	public static final String ADMINISTRATOR_S = "Welcome, admin '%s'!";
 
-	public static final String PASSWORD_COLUMN_NAME = "password";
-	public static final String USERTYPE_COLUMN_NAME = "user_type";
-
 	public static final String[] OPERATOR_TYPES = { "<", "=", "CONTAINS", ">", "<>" };
 	public static final String[] OPERATOR_TYPES_S = { "less than", "is", "contains", "greater than", "is not" };
 
@@ -41,9 +52,12 @@ public class Dao
 	public static final String[] VALID_SEARCH_FIELDS_TICKETS_S = { "Ticket ID", "Person ID", "Short Description",
 			"Category", "Long Description", "Start Date", "End Date" };
 
-	private static Connection c = null;
-	private static Integer USER_TYPE = null;
-	private String USER_NAME = null;
+	public Connection c = null;
+	
+	public Integer USER_TYPE = null;
+	public String USER_NAME = null;
+	public String USER_PASS = null;
+	public Integer USER_ID = null;
 
 	private static String stringLine(String duplicate, int length)
 	{
@@ -93,7 +107,7 @@ public class Dao
 
 	public Dao() // default constructor
 	{
-
+		
 	}
 
 	public Dao(String host, String user, String password) // nondefault constructor
@@ -207,6 +221,7 @@ public class Dao
 		System.out.printf("Results for logging in user '%s' with password '%s'...\n", username, password);
 		int ret = 0;
 		int usertype = -1; // user = 1, admin = 2, etc...
+		int tempID = -1;
 
 		Statement s = null;
 		try
@@ -234,14 +249,18 @@ public class Dao
 			// verify user has entered the right password
 			if (rs.getString(PASSWORD_COLUMN_NAME).compareTo((password)) == 0)
 			{
-				System.out.printf("Welcome, user '%s'!", username);
+				System.out.printf("Welcome, user '%s'!\n", username);
 				ret = rs.getInt(USERTYPE_COLUMN_NAME); // get user type
+				tempID = rs.getInt(USER_ID_COLUMN_NAME); //get user id for later
 
 				switch (usertype)
 				{
 				case NORMAL_USER:
 					break;
+				case ADMINISTRATOR:
+					break;
 				}
+				
 			}
 			else
 			{
@@ -263,12 +282,39 @@ public class Dao
 		{
 			this.USER_TYPE = ret;
 			this.USER_NAME = username;
+			this.USER_PASS = password;
+			this.USER_ID = tempID;
+			
+			
 		}
 
 		return ret;
 
 	}
 
+	public ArrayList<String> getCategories()
+	{
+		ArrayList<String> ret = new ArrayList<>();
+		
+		Statement s;
+		try
+		{
+			s = this.c.createStatement();
+			
+			String query = String.format("SELECT * FROM %s",SQLC.TABLE_CATEGORIES);
+			
+			ResultSet rs = s.executeQuery(query);
+		}
+		catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
+		
+		
+		return ret;
+	}
+	
+	
 	public static ArrayList<ArrayList<Object>> resultSetToList(ResultSet rs)
 	{
 		ResultSetMetaData rsmd = null;
@@ -486,10 +532,29 @@ public class Dao
 	/***
 	 * Inserts a ticket.
 	 */
-	public void submitTicket(String name, String shortDesc, String longDesc, String category, String severity,
+	public void submitTicket(String name, String shortDesc, String longDesc, Integer category, Integer severity,
 			Date startDate, Date endDate)
 	{
-		// TODO Auto-generated method stub
-
+		String query = "";
+				
+		try
+		{
+			Statement s = c.createStatement();
+			
+			query = String.format("INSERT INTO %s (%s, %s, %s, %s, %s, %s) ",
+					SQLC.TABLE_TICKETS, SQLC.USER_ID_COLUMN_NAME, SQLC.SHORT_DESC_COLUMN_NAME,
+					SQLC.LONG_DESC_COLUMN_NAME, SQLC.CATEGORY_ID_COLUMN_NAME, SQLC.SEVERITY_COLUMN_NAME, SQLC.START_DATE_COLUMN_NAME);
+								  
+			query += String.format("VALUES (%d, '%s', '%s', %d, %d, '%s');",
+								  this.USER_ID,  shortDesc,   longDesc,   category,   severity,  startDate);
+			
+			System.out.printf("About to insert a record with the following SQL statement:\n '%s'\n",query);
+			
+			s.execute(query);
+		}
+		catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
 	}
 }

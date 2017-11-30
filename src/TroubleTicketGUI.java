@@ -4,28 +4,43 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
-import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+
+import org.eclipse.wb.swing.FocusTraversalOnArray;
+
+import com.toedter.calendar.JDateChooser;
 
 public class TroubleTicketGUI
 {
@@ -44,6 +59,7 @@ public class TroubleTicketGUI
 
 	public static final String NESW = "NESW";
 
+	private static final String BUTTON_LOGOUT_NAME = "btnLogout";
 	private static final String BUTTON_LOGIN_NAME = "btnLogin";
 	private static final String BUTTON_NEW_TICKET_NAME = "btnNewTicket";
 	private static final String BUTTON_MODIFY_TICKET_NAME = "btnModifyTicket";
@@ -116,6 +132,20 @@ public class TroubleTicketGUI
 		}
 		return ret;
 	}
+	
+	public static ArrayList<Component> getComponentsFromJPanel(JPanel jp)
+	{
+		ArrayList<Component> ret = new ArrayList<>();
+		
+		for (Component c : jp.getComponents())
+		{
+			if (c instanceof Component)
+			{
+				ret.add((Component) c);
+			}
+		}
+		return ret;
+	}
 
 	/***
 	 * This grabs the comparator ('>', '=', '!='), and the two operands (name, id,
@@ -126,9 +156,170 @@ public class TroubleTicketGUI
 	 */
 	public static void setupResultsView(String s)
 	{
-
+		
 	}
 
+	/***
+	 * Sets tooltips for all components inside of a container.
+	 * @param container				The container that has the components inside of it.
+	 * @param excludedComponents	Names of components to not get tooltips.
+	 * @param tooltip				The tooltip to be displayed.
+	 */
+	public static void setTooltips(JPanel container, String[] excludedComponents, String tooltip)
+	{
+		ArrayList<String> excludedComponentsAR = new ArrayList<>(Arrays.asList(excludedComponents));
+		
+		ArrayList<Component> components = getComponentsFromJPanel(container);
+		SpringLayout tempSL = (SpringLayout) container.getLayout();
+		
+		for (int i = 0; i < components.size(); i++)
+		{
+			if (!excludedComponentsAR.contains(components.get(i).getName()))
+			{
+				try
+				{
+					((JComponent) components.get(i)).setToolTipText(tooltip); // may not be able to be cast to JComponent...
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	
+	/***
+	 * Makes all buttons inside of a JPanel disabled/unclickable.
+	 * @param buttonContainer	The container that has the buttons inside of it
+	 * @param excludedButtons 	Names of buttons to not be disabled.
+	 * @param enableAll 	 	Enable all buttons instead of disabling?
+	 */
+	public static void disableButtons(JPanel buttonContainer, String[] excludedButtons, Boolean enableAll)
+	{
+		ArrayList<String> excludedButtonsAR = new ArrayList<>(Arrays.asList(excludedButtons));
+		
+		ArrayList<JButton> menuButtons = getButtonsFromJPanel(buttonContainer);
+		SpringLayout tempSL = (SpringLayout) buttonContainer.getLayout();
+		
+		for(int i = 0; i < menuButtons.size(); i++)
+		{
+			JButton tempButton = menuButtons.get(i);
+			
+			tempButton.setEnabled(false); //assume it should be disabled
+			
+			if(enableAll || excludedButtonsAR.contains(tempButton.getName()))
+			{
+				tempButton.setEnabled(true);
+			}
+		}
+	}
+
+
+	public static void disableButtons(JPanel buttonContainer, String[] excludedButtons)
+	{
+		disableButtons(buttonContainer, excludedButtons, false);
+	}
+	
+	public void disableButtons(JPanel buttonContainer)
+	{
+		disableButtons(buttonContainer, new String[] {});
+	}
+	
+	public static void enableButtons(JPanel buttonContainer)
+	{
+		disableButtons(buttonContainer, new String[] {}, true);
+	}
+	
+
+/***
+ * Populates a comboBox with a list gotten from an SQL table.
+ * The SQL table should look like this:
+ * <pre>
+ * <code>
+ * +----+-------------+
+ * | <b>id</b> |     str     |
+ * +----+-------------+
+ * | 1  |    bad      |
+ * | 2  |    good     |
+ * | 3  |    great    |
+ * | 4  |  excellent  |
+ * +----+-------------+
+ * </pre>
+ * </code>
+ * 
+ * and produces this JComboBox:
+ * <pre>
+ * <code>
+ * +------------------+
+ * | 1 - bad          |
+ * | 2 - good         |
+ * | 3 - great        |
+ * | 4 - excellent    |
+ * +------------------+
+ * </pre>
+ * </code>
+ * @param comboBox
+ * @param tableName
+ */
+	public void setupComboBox(JComboBox<String> comboBox, String tableName)
+	{
+		try
+		{
+			Statement s = this.dao.c.createStatement();
+			
+			String query = String.format("SELECT * FROM %s",tableName);
+			
+			printf("Grabbing category list from database with the following query: \n'%s'\n",query);
+			
+			ResultSet rs = s.executeQuery(query);
+			ResultSetMetaData rsmd = rs.getMetaData();
+			
+			comboBox.removeAll();
+			comboBox.setModel(new DefaultComboBoxModel<>());
+			
+			while(rs.next())
+			{
+				String onecol = "";
+				
+				for(int i = 1; i <= rsmd.getColumnCount(); i++)
+				{
+					if(i != 1)
+					{
+						onecol += " - ";
+					}
+					
+					onecol += rs.getString(i).toString();
+				}
+				
+				printf("Adding string '%s' to comboBox!\n",onecol);
+				comboBox.addItem(onecol);
+			}
+			
+			
+			
+			
+		}
+		catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	public void setupCategories(JComboBox<String> comboBox)
+	{
+		setupComboBox(comboBox, SQLC.TABLE_CATEGORIES.ts());
+	}
+	
+	public void setupSeverities(JComboBox<String> comboBox)
+	{
+		setupComboBox(comboBox, SQLC.TABLE_SEVERITIES.ts());
+	}
+	
+	
+	
+	
+	
 	/**
 	 * @param buttonContainer
 	 *            The container that has the buttons inside of it.
@@ -201,6 +392,11 @@ public class TroubleTicketGUI
 
 		if (result == Dao.NORMAL_USER || result == Dao.ADMINISTRATOR)
 		{// log them in!
+			
+			setTooltips(panelMenu,new String[] {}, ""); //reset tooltips
+			enableButtons(panelMenu);					//enable all buttons
+			
+			
 			if (result == Dao.NORMAL_USER)
 			{
 				lblWhosLoggedIn.setText(String.format(Dao.NORMAL_USER_S, username));
@@ -209,7 +405,6 @@ public class TroubleTicketGUI
 			{
 				lblWhosLoggedIn.setText(String.format(Dao.ADMINISTRATOR_S, username));
 			}
-			printf("Welcome, '%s'!", username);
 			lblWhosLoggedIn.setText(username);
 		}
 		if (result == Dao.PASSWORD_INCORRECT) // wrong pass
@@ -231,6 +426,7 @@ public class TroubleTicketGUI
 	private JLabel lblWhosLoggedIn;
 	private JLabel lblCurrentPane;
 
+	private JButton btnLogout;
 	private JButton btnLogin;
 	private JButton btnNewTicket;
 	private JButton btnModifyTicket;
@@ -249,7 +445,6 @@ public class TroubleTicketGUI
 	private SpringLayout sl_panelRight;
 	private SpringLayout sl_panelLogin;
 	private JPanel panelUsername;
-	private SpringLayout sl_panelNewTicket;
 	private JLabel lblUsername;
 	private JPanel panelRightTop;
 	private JPanel panelPassword;
@@ -273,19 +468,16 @@ public class TroubleTicketGUI
 	private SpringLayout sl_panelShortDesc;
 	private JLabel lblShortDesc;
 	private JPanel panelCategory;
-	private JLabel labelCategory;
 	private JPanel panelButtonSubmitNewTicket;
 	private JPanel panelTextAreaLongDesc;
 	private JTextArea textAreaLongDesc;
-	private JPanel panelAdminOptionsNewTicket;
 	private JPanel panelUsernameMiddle;
 	private JTextField textFieldUsername;
 	private JPanel panelPasswordMiddle;
 	private JScrollPane scrollPaneLongDesc;
 	private SpringLayout sl_panelLongDesc;
 	private JPanel panelLongDesc;
-	private SpringLayout sl_panelCategory;
-	private JComboBox spinnerCategory;
+	private JComboBox comboBoxCategory;
 	private SpringLayout sl_panelUsername;
 	private JLabel lblLongDescription;
 	private JPanel panelBtnLoginSubmitMiddle;
@@ -299,6 +491,18 @@ public class TroubleTicketGUI
 	private JSplitPane splitPaneSearch;
 	private JPanel panelSearchTop;
 	private JPanel panelSearchResultsTop;
+	private JLabel labelCategory;
+	private JLabel labelSeverity;
+	private JComboBox<String> comboBoxSeverity;
+	private JPanel panelSearchBottom;
+	private JPanel panelSeverity;
+	private JPanel panelDateStarted;
+	private JLabel labelDateStarted;
+	private JDateChooser dateStartedChooser;
+	private JPanel panelDateEnded;
+	private JLabel labelDateEnded;
+	private JDateChooser dateChooser;
+	private JButton btnScrungus;
 
 	/**
 	 * Launch the application.
@@ -351,10 +555,9 @@ public class TroubleTicketGUI
 	 */
 	private void initialize()
 	{
-		Dao dao = new Dao();
 
 		frame = new JFrame();
-		frame.setBounds(100, 100, 785, 578);
+		frame.setBounds(100, 100, 926, 682);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		springLayout = new SpringLayout();
 		frame.getContentPane().setLayout(springLayout);
@@ -378,10 +581,12 @@ public class TroubleTicketGUI
 		splitPaneLeft.setRightComponent(panelMenu);
 		sl_panelMenu = new SpringLayout();
 		panelMenu.setLayout(sl_panelMenu);
-
+		
+		btnLogout = new JButton("Logout");
+		btnLogout.setName(BUTTON_LOGOUT_NAME);
+		panelMenu.add(btnLogout);
+		
 		btnLogin = new JButton("Login");
-		sl_panelMenu.putConstraint(NORTH, btnLogin, 5, NORTH, panelMenu);
-		sl_panelMenu.putConstraint(WEST, btnLogin, PADDING, WEST, panelMenu);
 		btnLogin.setName(BUTTON_LOGIN_NAME);
 		panelMenu.add(btnLogin);
 
@@ -417,7 +622,6 @@ public class TroubleTicketGUI
 		sl_panelRight.putConstraint(SOUTH, panelRightContent, 0, SOUTH, panelRight);
 		sl_panelRight.putConstraint(EAST, panelRightContent, 0, EAST, panelRight);
 		panelRightContent.setName(PANEL_RIGHT_CONTENT_NAME);
-		sl_panelRight.putConstraint(NORTH, panelRightContent, 27, NORTH, panelRight);
 		sl_panelRight.putConstraint(WEST, panelRightContent, 0, WEST, panelRight);
 		panelRight.add(panelRightContent, panelRightContent.getName());
 		panelRightContent.setLayout(new CardLayout(0, 0));
@@ -431,8 +635,6 @@ public class TroubleTicketGUI
 		panelNewTicket = new JPanel();
 		panelNewTicket.setName("panelNewTicket");
 		panelRightContent.add(panelNewTicket, panelNewTicket.getName());
-		sl_panelNewTicket = new SpringLayout();
-		panelNewTicket.setLayout(sl_panelNewTicket);
 
 		panelSearch = new JPanel();
 		panelSearch.setName("panelSearch");
@@ -524,6 +726,7 @@ public class TroubleTicketGUI
 		panelBtnLoginSubmitMiddle.add(btnLoginSubmit);
 
 		panelRightTop = new JPanel();
+		sl_panelRight.putConstraint(NORTH, panelRightContent, 27, SpringLayout.NORTH, panelRightTop);
 		panelRightTop.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
 		sl_panelRight.putConstraint(NORTH, panelRightTop, 0, NORTH, panelRight);
 		sl_panelRight.putConstraint(WEST, panelRightTop, 0, WEST, panelRightContent);
@@ -533,134 +736,205 @@ public class TroubleTicketGUI
 
 		lblCurrentPane = new JLabel("THIS_SHOULD_BE_AUTO_REPLACED");
 		panelRightTop.add(lblCurrentPane);
-		sl_panelNewTicket.putConstraint(NORTH, lblCurrentPane, PADDING, NORTH, panelNewTicket);
-		sl_panelNewTicket.putConstraint(EAST, lblCurrentPane, -230, EAST, panelNewTicket);
-
-		panelShortDesc = new JPanel();
-		sl_panelNewTicket.putConstraint(SpringLayout.NORTH, panelShortDesc, 10, SpringLayout.NORTH, panelNewTicket);
-		sl_panelNewTicket.putConstraint(SpringLayout.WEST, panelShortDesc, 10, SpringLayout.WEST, panelNewTicket);
-		sl_panelNewTicket.putConstraint(SpringLayout.EAST, panelShortDesc, 299, SpringLayout.WEST, panelNewTicket);
-		panelNewTicket.add(panelShortDesc);
-		sl_panelShortDesc = new SpringLayout();
-		panelShortDesc.setLayout(sl_panelShortDesc);
-
-		lblShortDesc = new JLabel("Short description / name");
-		sl_panelShortDesc.putConstraint(SpringLayout.NORTH, lblShortDesc, 10, SpringLayout.NORTH, panelShortDesc);
-		lblShortDesc.setHorizontalAlignment(SwingConstants.CENTER);
-		sl_panelShortDesc.putConstraint(SpringLayout.WEST, lblShortDesc, 10, SpringLayout.WEST, panelShortDesc);
-		sl_panelShortDesc.putConstraint(SpringLayout.EAST, lblShortDesc, -10, SpringLayout.EAST, panelShortDesc);
-		panelShortDesc.add(lblShortDesc);
-
-		panelTextAreaShortDesc = new JPanel();
-		sl_panelShortDesc.putConstraint(SpringLayout.NORTH, panelTextAreaShortDesc, 10, SpringLayout.SOUTH,
-				lblShortDesc);
-		sl_panelShortDesc.putConstraint(SpringLayout.WEST, panelTextAreaShortDesc, 10, SpringLayout.WEST,
-				panelShortDesc);
-		sl_panelShortDesc.putConstraint(SpringLayout.EAST, panelTextAreaShortDesc, -10, SpringLayout.EAST,
-				panelShortDesc);
-		panelTextAreaShortDesc.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-		sl_panelShortDesc.putConstraint(SpringLayout.SOUTH, panelTextAreaShortDesc, -10, SpringLayout.SOUTH,
-				panelShortDesc);
-		panelShortDesc.add(panelTextAreaShortDesc);
-		panelTextAreaShortDesc.setLayout(new BorderLayout(0, 0));
-
-		textAreaShortDesc = new JTextArea();
-		panelTextAreaShortDesc.add(textAreaShortDesc);
-		sl_panelShortDesc.putConstraint(SpringLayout.NORTH, textAreaShortDesc, 6, SpringLayout.SOUTH, lblShortDesc);
-		sl_panelShortDesc.putConstraint(SpringLayout.WEST, textAreaShortDesc, 10, SpringLayout.WEST, panelShortDesc);
-		sl_panelShortDesc.putConstraint(SpringLayout.SOUTH, textAreaShortDesc, -10, SpringLayout.SOUTH, panelShortDesc);
-		sl_panelShortDesc.putConstraint(SpringLayout.EAST, textAreaShortDesc, -10, SpringLayout.EAST, panelShortDesc);
-		textAreaShortDesc.setColumns(10);
-
-		panelCategory = new JPanel();
-		sl_panelNewTicket.putConstraint(SpringLayout.NORTH, panelCategory, 10, SpringLayout.NORTH, panelNewTicket);
-		sl_panelNewTicket.putConstraint(SpringLayout.WEST, panelCategory, 10, SpringLayout.EAST, panelShortDesc);
-		sl_panelNewTicket.putConstraint(SpringLayout.SOUTH, panelCategory, 0, SpringLayout.SOUTH, panelShortDesc);
-		sl_panelNewTicket.putConstraint(SpringLayout.EAST, panelCategory, -10, SpringLayout.EAST, panelNewTicket);
-		panelNewTicket.add(panelCategory);
-		sl_panelCategory = new SpringLayout();
-		panelCategory.setLayout(sl_panelCategory);
-
-		labelCategory = new JLabel("Category");
-		sl_panelCategory.putConstraint(SpringLayout.NORTH, labelCategory, 6, SpringLayout.NORTH, panelCategory);
-		sl_panelCategory.putConstraint(SpringLayout.WEST, labelCategory, 10, SpringLayout.WEST, panelCategory);
-		sl_panelCategory.putConstraint(SpringLayout.EAST, labelCategory, -10, SpringLayout.EAST, panelCategory);
-		labelCategory.setHorizontalAlignment(SwingConstants.CENTER);
-		panelCategory.add(labelCategory);
-
-		spinnerCategory = new JComboBox<Object>();
-		sl_panelCategory.putConstraint(SpringLayout.SOUTH, spinnerCategory, -29, SpringLayout.SOUTH, panelCategory);
-		spinnerCategory.setFont(new Font("Dialog", Font.BOLD, 15));
-		spinnerCategory.setModel(new DefaultComboBoxModel(
-				new String[] { "THESE", "SHOULD", "BE", "AUTO", "REPLACED", "FROM", "THE", "CATEGORIES", "TABLE" }));
-		sl_panelCategory.putConstraint(SpringLayout.NORTH, spinnerCategory, 10, SpringLayout.SOUTH, labelCategory);
-		sl_panelCategory.putConstraint(SpringLayout.WEST, spinnerCategory, 0, SpringLayout.WEST, labelCategory);
-		sl_panelCategory.putConstraint(SpringLayout.EAST, spinnerCategory, -10, SpringLayout.EAST, panelCategory);
-		panelCategory.add(spinnerCategory);
-
-		panelButtonSubmitNewTicket = new JPanel();
-		sl_panelNewTicket.putConstraint(SpringLayout.WEST, panelButtonSubmitNewTicket, 0, SpringLayout.WEST,
-				panelNewTicket);
-		sl_panelNewTicket.putConstraint(SpringLayout.SOUTH, panelButtonSubmitNewTicket, 0, SpringLayout.SOUTH,
-				panelNewTicket);
-		sl_panelNewTicket.putConstraint(SpringLayout.EAST, panelButtonSubmitNewTicket, 0, SpringLayout.EAST,
-				panelNewTicket);
-		panelNewTicket.add(panelButtonSubmitNewTicket);
-
-		btnSubmitNewTicket = new JButton("Submit new ticket");
-
-		panelButtonSubmitNewTicket.add(btnSubmitNewTicket);
-		sl_panelNewTicket.putConstraint(SpringLayout.WEST, btnSubmitNewTicket, 231, SpringLayout.WEST, panelNewTicket);
-		sl_panelNewTicket.putConstraint(SpringLayout.SOUTH, btnSubmitNewTicket, -10, SpringLayout.SOUTH,
-				panelNewTicket);
-		btnSubmitNewTicket.setName("btnNewTiket");
-
-		panelLongDesc = new JPanel();
-		sl_panelNewTicket.putConstraint(SpringLayout.SOUTH, panelShortDesc, -10, SpringLayout.NORTH, panelLongDesc);
-		sl_panelNewTicket.putConstraint(SpringLayout.NORTH, panelLongDesc, 110, SpringLayout.NORTH, panelNewTicket);
-		sl_panelNewTicket.putConstraint(SpringLayout.SOUTH, panelLongDesc, -223, SpringLayout.NORTH,
-				panelButtonSubmitNewTicket);
-		sl_panelNewTicket.putConstraint(SpringLayout.WEST, panelLongDesc, 10, SpringLayout.WEST, panelNewTicket);
-		sl_panelNewTicket.putConstraint(SpringLayout.EAST, panelLongDesc, -10, SpringLayout.EAST, panelNewTicket);
-		panelNewTicket.add(panelLongDesc);
-		sl_panelLongDesc = new SpringLayout();
-		panelLongDesc.setLayout(sl_panelLongDesc);
-
-		lblLongDescription = new JLabel("Long description");
-		sl_panelLongDesc.putConstraint(SpringLayout.NORTH, lblLongDescription, 0, SpringLayout.NORTH, panelLongDesc);
-		sl_panelLongDesc.putConstraint(SpringLayout.WEST, lblLongDescription, 10, SpringLayout.WEST, panelLongDesc);
-		sl_panelLongDesc.putConstraint(SpringLayout.EAST, lblLongDescription, -10, SpringLayout.EAST, panelLongDesc);
-		lblLongDescription.setHorizontalAlignment(SwingConstants.CENTER);
-		panelLongDesc.add(lblLongDescription);
-
-		panelTextAreaLongDesc = new JPanel();
-		panelTextAreaLongDesc.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-		sl_panelLongDesc.putConstraint(SpringLayout.NORTH, panelTextAreaLongDesc, 10, SpringLayout.SOUTH,
-				lblLongDescription);
-		sl_panelLongDesc.putConstraint(SpringLayout.SOUTH, panelTextAreaLongDesc, -10, SpringLayout.SOUTH,
-				panelLongDesc);
-		sl_panelLongDesc.putConstraint(SpringLayout.WEST, panelTextAreaLongDesc, 10, SpringLayout.WEST, panelLongDesc);
-		sl_panelLongDesc.putConstraint(SpringLayout.EAST, panelTextAreaLongDesc, -10, SpringLayout.EAST, panelLongDesc);
-		panelLongDesc.add(panelTextAreaLongDesc);
-		panelTextAreaLongDesc.setLayout(new BorderLayout(0, 0));
-
-		scrollPaneLongDesc = new JScrollPane();
-		panelTextAreaLongDesc.add(scrollPaneLongDesc, BorderLayout.CENTER);
-
-		textAreaLongDesc = new JTextArea();
-		scrollPaneLongDesc.setViewportView(textAreaLongDesc);
-		textAreaLongDesc.setColumns(10);
-
-		panelAdminOptionsNewTicket = new JPanel();
-		sl_panelNewTicket.putConstraint(SpringLayout.NORTH, panelAdminOptionsNewTicket, 96, SpringLayout.SOUTH,
-				panelLongDesc);
-		sl_panelNewTicket.putConstraint(SpringLayout.WEST, panelAdminOptionsNewTicket, 10, SpringLayout.WEST,
-				panelNewTicket);
-		sl_panelNewTicket.putConstraint(SpringLayout.SOUTH, panelAdminOptionsNewTicket, -6, SpringLayout.NORTH,
-				panelButtonSubmitNewTicket);
-		sl_panelNewTicket.putConstraint(SpringLayout.EAST, panelAdminOptionsNewTicket, 0, SpringLayout.EAST,
-				panelCategory);
-		panelNewTicket.add(panelAdminOptionsNewTicket);
+		GridBagLayout gbl_panelNewTicket = new GridBagLayout();
+		gbl_panelNewTicket.columnWidths = new int[]{12, 179, 112, 105, 46, 137, 0, 0, 0};
+		gbl_panelNewTicket.rowHeights = new int[] {50, 60, 36, 55, 161, 121, 91, 0, 1};
+		gbl_panelNewTicket.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, Double.MIN_VALUE};
+		gbl_panelNewTicket.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		panelNewTicket.setLayout(gbl_panelNewTicket);
+				
+						panelShortDesc = new JPanel();
+						GridBagConstraints gbc_panelShortDesc = new GridBagConstraints();
+						gbc_panelShortDesc.insets = new Insets(0, 0, 5, 5);
+						gbc_panelShortDesc.fill = GridBagConstraints.BOTH;
+						gbc_panelShortDesc.gridheight = 2;
+						gbc_panelShortDesc.gridx = 1;
+						gbc_panelShortDesc.gridy = 0;
+						panelNewTicket.add(panelShortDesc, gbc_panelShortDesc);
+						sl_panelShortDesc = new SpringLayout();
+						panelShortDesc.setLayout(sl_panelShortDesc);
+						
+								lblShortDesc = new JLabel("Short description / name");
+								sl_panelShortDesc.putConstraint(SpringLayout.NORTH, lblShortDesc, 10, SpringLayout.NORTH, panelShortDesc);
+								lblShortDesc.setHorizontalAlignment(SwingConstants.CENTER);
+								sl_panelShortDesc.putConstraint(SpringLayout.WEST, lblShortDesc, 10, SpringLayout.WEST, panelShortDesc);
+								sl_panelShortDesc.putConstraint(SpringLayout.EAST, lblShortDesc, -10, SpringLayout.EAST, panelShortDesc);
+								panelShortDesc.add(lblShortDesc);
+								
+										panelTextAreaShortDesc = new JPanel();
+										sl_panelShortDesc.putConstraint(SpringLayout.NORTH, panelTextAreaShortDesc, 10, SpringLayout.SOUTH,
+												lblShortDesc);
+										sl_panelShortDesc.putConstraint(SpringLayout.WEST, panelTextAreaShortDesc, 10, SpringLayout.WEST,
+												panelShortDesc);
+										sl_panelShortDesc.putConstraint(SpringLayout.EAST, panelTextAreaShortDesc, -10, SpringLayout.EAST,
+												panelShortDesc);
+										panelTextAreaShortDesc.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
+										sl_panelShortDesc.putConstraint(SpringLayout.SOUTH, panelTextAreaShortDesc, -10, SpringLayout.SOUTH,
+												panelShortDesc);
+										panelShortDesc.add(panelTextAreaShortDesc);
+										panelTextAreaShortDesc.setLayout(new BorderLayout(0, 0));
+										
+												textAreaShortDesc = new JTextArea();
+												panelTextAreaShortDesc.add(textAreaShortDesc);
+												sl_panelShortDesc.putConstraint(SpringLayout.NORTH, textAreaShortDesc, 6, SpringLayout.SOUTH, lblShortDesc);
+												sl_panelShortDesc.putConstraint(SpringLayout.WEST, textAreaShortDesc, 10, SpringLayout.WEST, panelShortDesc);
+												sl_panelShortDesc.putConstraint(SpringLayout.SOUTH, textAreaShortDesc, -10, SpringLayout.SOUTH, panelShortDesc);
+												sl_panelShortDesc.putConstraint(SpringLayout.EAST, textAreaShortDesc, -10, SpringLayout.EAST, panelShortDesc);
+												textAreaShortDesc.setColumns(10);
+				
+						panelCategory = new JPanel();
+						GridBagConstraints gbc_panelCategory = new GridBagConstraints();
+						gbc_panelCategory.gridwidth = 2;
+						gbc_panelCategory.fill = GridBagConstraints.BOTH;
+						gbc_panelCategory.insets = new Insets(0, 0, 5, 5);
+						gbc_panelCategory.gridx = 2;
+						gbc_panelCategory.gridy = 0;
+						panelNewTicket.add(panelCategory, gbc_panelCategory);
+						panelCategory.setLayout(new BorderLayout(0, 0));
+						
+								comboBoxCategory = new JComboBox<Object>();
+								comboBoxCategory.setFont(new Font("Dialog", Font.BOLD, 15));
+								comboBoxCategory.setModel(new DefaultComboBoxModel(new String[] {"THESE", "SHOULD", "BE", "AUTO", "REPLACED", "FROM", "THE", "CATEGORIES", "TABLE"}));
+								panelCategory.add(comboBoxCategory);
+								
+								labelCategory = new JLabel("Category");
+								labelCategory.setHorizontalAlignment(SwingConstants.CENTER);
+								panelCategory.add(labelCategory, BorderLayout.NORTH);
+								
+										setupCategories(comboBoxCategory); //grab list of possible categories from server's category table
+				
+				panelDateStarted = new JPanel();
+				GridBagConstraints gbc_panelDateStarted = new GridBagConstraints();
+				gbc_panelDateStarted.gridwidth = 2;
+				gbc_panelDateStarted.anchor = GridBagConstraints.NORTHWEST;
+				gbc_panelDateStarted.insets = new Insets(5, 5, 5, 5);
+				gbc_panelDateStarted.gridx = 4;
+				gbc_panelDateStarted.gridy = 0;
+				panelNewTicket.add(panelDateStarted, gbc_panelDateStarted);
+				panelDateStarted.setLayout(new BorderLayout(0, 0));
+				
+				dateStartedChooser = new JDateChooser();
+				dateStartedChooser.setDateFormatString("MMM d, yyyy, hh:mm:ss aa");
+				panelDateStarted.add(dateStartedChooser);
+				
+				labelDateStarted = new JLabel("Date started");
+				labelDateStarted.setHorizontalAlignment(SwingConstants.CENTER);
+				panelDateStarted.add(labelDateStarted, BorderLayout.NORTH);
+				
+				panelSeverity = new JPanel();
+				GridBagConstraints gbc_panelSeverity = new GridBagConstraints();
+				gbc_panelSeverity.fill = GridBagConstraints.HORIZONTAL;
+				gbc_panelSeverity.gridwidth = 2;
+				gbc_panelSeverity.insets = new Insets(0, 0, 5, 5);
+				gbc_panelSeverity.gridx = 2;
+				gbc_panelSeverity.gridy = 1;
+				panelNewTicket.add(panelSeverity, gbc_panelSeverity);
+				panelSeverity.setLayout(new BorderLayout(0, 0));
+				
+				labelSeverity = new JLabel("Severity");
+				labelSeverity.setHorizontalAlignment(SwingConstants.CENTER);
+				panelSeverity.add(labelSeverity, BorderLayout.NORTH);
+				
+				comboBoxSeverity = new JComboBox<String>();
+				comboBoxSeverity.setModel(new DefaultComboBoxModel(new String[] {"THESE", "SHOULD", "BE", "POPULATED", "WITH", "ENTRIES", "FROM", "THE", "SEVERITY", "TABLE"}));
+				comboBoxSeverity.setFont(new Font("Dialog", Font.BOLD, 15));
+				panelSeverity.add(comboBoxSeverity, BorderLayout.CENTER);
+				
+				panelSeverity.setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{comboBoxSeverity, labelSeverity}));
+				setupSeverities(comboBoxSeverity); //grab list of possible severities from server's severity table
+				
+				panelDateEnded = new JPanel();
+				GridBagConstraints gbc_panelDateEnded = new GridBagConstraints();
+				gbc_panelDateEnded.anchor = GridBagConstraints.WEST;
+				gbc_panelDateEnded.gridwidth = 2;
+				gbc_panelDateEnded.insets = new Insets(5, 5, 5, 5);
+				gbc_panelDateEnded.gridx = 4;
+				gbc_panelDateEnded.gridy = 1;
+				panelNewTicket.add(panelDateEnded, gbc_panelDateEnded);
+				panelDateEnded.setLayout(new BorderLayout(0, 0));
+				
+				dateChooser = new JDateChooser();
+				dateChooser.setDateFormatString("MMM d, yyyy, hh:mm:ss aa");
+				panelDateEnded.add(dateChooser, BorderLayout.CENTER);
+				
+				labelDateEnded = new JLabel("Date ended");
+				labelDateEnded.setHorizontalAlignment(SwingConstants.CENTER);
+				panelDateEnded.add(labelDateEnded, BorderLayout.NORTH);
+						
+								panelLongDesc = new JPanel();
+								GridBagConstraints gbc_panelLongDesc = new GridBagConstraints();
+								gbc_panelLongDesc.gridheight = 3;
+								gbc_panelLongDesc.fill = GridBagConstraints.BOTH;
+								gbc_panelLongDesc.insets = new Insets(0, 0, 5, 5);
+								gbc_panelLongDesc.gridwidth = 6;
+								gbc_panelLongDesc.gridx = 1;
+								gbc_panelLongDesc.gridy = 2;
+								panelNewTicket.add(panelLongDesc, gbc_panelLongDesc);
+								sl_panelLongDesc = new SpringLayout();
+								panelLongDesc.setLayout(sl_panelLongDesc);
+								
+										lblLongDescription = new JLabel("Long description");
+										sl_panelLongDesc.putConstraint(SpringLayout.NORTH, lblLongDescription, 0, SpringLayout.NORTH, panelLongDesc);
+										sl_panelLongDesc.putConstraint(SpringLayout.WEST, lblLongDescription, 10, SpringLayout.WEST, panelLongDesc);
+										sl_panelLongDesc.putConstraint(SpringLayout.EAST, lblLongDescription, -10, SpringLayout.EAST, panelLongDesc);
+										lblLongDescription.setHorizontalAlignment(SwingConstants.CENTER);
+										panelLongDesc.add(lblLongDescription);
+										
+												panelTextAreaLongDesc = new JPanel();
+												panelTextAreaLongDesc.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
+												sl_panelLongDesc.putConstraint(SpringLayout.NORTH, panelTextAreaLongDesc, 10, SpringLayout.SOUTH,
+														lblLongDescription);
+												sl_panelLongDesc.putConstraint(SpringLayout.SOUTH, panelTextAreaLongDesc, -10, SpringLayout.SOUTH,
+														panelLongDesc);
+												sl_panelLongDesc.putConstraint(SpringLayout.WEST, panelTextAreaLongDesc, 10, SpringLayout.WEST, panelLongDesc);
+												sl_panelLongDesc.putConstraint(SpringLayout.EAST, panelTextAreaLongDesc, -10, SpringLayout.EAST, panelLongDesc);
+												panelLongDesc.add(panelTextAreaLongDesc);
+												panelTextAreaLongDesc.setLayout(new BorderLayout(0, 0));
+												
+														scrollPaneLongDesc = new JScrollPane();
+														panelTextAreaLongDesc.add(scrollPaneLongDesc, BorderLayout.CENTER);
+														
+																textAreaLongDesc = new JTextArea();
+																scrollPaneLongDesc.setViewportView(textAreaLongDesc);
+																textAreaLongDesc.setColumns(10);
+										
+												btnSubmitNewTicket = new JButton("Submit new ticket");
+												GridBagConstraints gbc_btnSubmitNewTicket = new GridBagConstraints();
+												gbc_btnSubmitNewTicket.fill = GridBagConstraints.BOTH;
+												gbc_btnSubmitNewTicket.gridwidth = 2;
+												gbc_btnSubmitNewTicket.insets = new Insets(0, 0, 5, 5);
+												gbc_btnSubmitNewTicket.gridx = 2;
+												gbc_btnSubmitNewTicket.gridy = 5;
+												panelNewTicket.add(btnSubmitNewTicket, gbc_btnSubmitNewTicket);
+												btnSubmitNewTicket.setName("btnNewTiket");
+												
+														btnSubmitNewTicket.addActionListener(new ActionListener()
+														{
+															/***
+															 * Someone clicks "submit new ticket"
+															 */
+															public void actionPerformed(ActionEvent arg0)
+															{
+																
+																dao.submitTicket(dao.USER_NAME,						//username
+																				textAreaShortDesc.getText(), 		//short desc
+																				textAreaLongDesc.getText(),			//long desc
+																				(Integer)Integer.parseInt(((String)comboBoxCategory.getSelectedItem()).substring(0, 1)),	//1st char of category dropdown as Integer
+																				(Integer)Integer.parseInt(((String)comboBoxSeverity.getSelectedItem()).substring(0, 1)),	//1st char of severity dropdown as Integer
+																				null,
+																				null);
+															}
+														});
+								
+										panelButtonSubmitNewTicket = new JPanel();
+										GridBagConstraints gbc_panelButtonSubmitNewTicket = new GridBagConstraints();
+										gbc_panelButtonSubmitNewTicket.insets = new Insets(0, 0, 5, 5);
+										gbc_panelButtonSubmitNewTicket.fill = GridBagConstraints.BOTH;
+										gbc_panelButtonSubmitNewTicket.gridwidth = 2;
+										gbc_panelButtonSubmitNewTicket.gridx = 2;
+										gbc_panelButtonSubmitNewTicket.gridy = 6;
+										panelNewTicket.add(panelButtonSubmitNewTicket, gbc_panelButtonSubmitNewTicket);
+												panelButtonSubmitNewTicket.setLayout(new BorderLayout(0, 0));
 		panelSearch.setLayout(new BorderLayout(0, 0));
 
 		splitPaneSearch = new JSplitPane();
@@ -692,7 +966,7 @@ public class TroubleTicketGUI
 
 		panelSearchTop.add(btnSearchThroughRecords);
 
-		JPanel panelSearchBottom = new JPanel();
+		panelSearchBottom = new JPanel();
 		splitPaneSearch.setRightComponent(panelSearchBottom);
 		panelSearchBottom.setLayout(new BorderLayout(0, 0));
 
@@ -800,18 +1074,6 @@ public class TroubleTicketGUI
 			}
 		});
 
-		btnSubmitNewTicket.addActionListener(new ActionListener()
-		{
-			/***
-			 * Someone clicks "submit new ticket"
-			 */
-			public void actionPerformed(ActionEvent arg0)
-			{
-
-				dao.submitTicket(null, null, null, null, null, null, null);
-			}
-		});
-
 		textFieldUsername.addActionListener(new ActionListener()
 		{
 			/***
@@ -846,10 +1108,28 @@ public class TroubleTicketGUI
 				doLogin(login[0], login[1]);
 			}
 		});
+		
+		frame.addWindowListener(new WindowAdapter()
+		{
+			/***
+			 * When window is opened, select username field.
+			 */
+			public void windowOpened(WindowEvent we)
+			{
+				textFieldUsername.requestFocus();
+
+			}
+		});		
 
 		formatButtons(panelMenu);
 
 		btnLogin.doClick(); // to setup the top text
 		lblLoginErrorMsg.setText(""); // empty login error message
+		
+		disableButtons(panelMenu,new String[] {BUTTON_LOGIN_NAME}); //disable all buttons until user logs in
+		setTooltips(panelMenu, new String[] {BUTTON_LOGIN_NAME}, "You must log in to be able to use this button.");
+		
+
+
 	}
 }
