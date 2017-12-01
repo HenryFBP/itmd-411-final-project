@@ -72,6 +72,7 @@ VALUES
 ('other'),
 ('tech'),
 ('building');
+SELECT * FROM categories;
 
 INSERT INTO
 	severities (severity_level)
@@ -81,12 +82,15 @@ VALUES
 ('office affected'), 
 ('building affected'), 
 ('armageddon');
+SELECT * FROM severities;
+
 
 INSERT INTO 
 	user_types (user_type_string) 
 VALUES
 ('NORMAL_USER'),
 ('ADMINISTRATOR');
+SELECT * FROM user_types;
  
 INSERT INTO
 	users (username, password, email, name, user_type)
@@ -97,54 +101,79 @@ VALUES
 ('mike','mikerocks12345','mike@hawk.iit.edu','Michael Bernauer',1),
 ('max','password','max@hawk.iit.edu','Max Oellean',1),
 ('admin','','admin@admin.admin','Admin admin',2);
+SELECT * FROM users;
 
 INSERT INTO
 	tickets (PID, shortDesc, longDesc, CID, SID, startDate)
 VALUES
 	(2, 'henry is asleep', 		'henry has fallen asleep at his desk', 1, 1, DATE(NOW())),
 	(1, 'bolo staring at me', 	'bolo is staring at me. I think he thinks i\'m asleep.', 1, 1, DATE(NOW()));
+SELECT * FROM tickets;
 
 -- 1 row(s) affected, 1 warning(s): 1292 Incorrect date value: '2017-11-30 19:09:37' for column 'endDate' at row 1 Rows matched: 1  Changed: 1  Warnings: 1
 
-SELECT * FROM users;
-SELECT * FROM tickets;
 
 UPDATE tickets
 	SET endDate = ADDDATE(NOW(), INTERVAL 1 DAY)
     WHERE TID = 1;
     
-    
 SELECT
-	TID,
-    PID,
-    name,
-    RES.CID,
-    category,
-    SID,
-	shortDesc,
-    longDesc,
-    startDate,
-    endDate
+	TID 'Ticket ID',
+	PID 'Person ID',
+	name 'Name',
+	RES.CID 'Category ID',
+	category 'Category',
+	RES.SID 'Severity ID',
+    severity_level 'Severity Level',
+	shortDesc 'Short Description',
+	longDesc 'Long Description',
+	startDate 'Start date',
+	endDate 'End date'
 FROM
 	(
-	SELECT
+    SELECT
 		TID,
-		t.PID,
+		PID,
 		name,
-		CID,
-        SID,
+		RES.CID,
+		category,
+		SID,
 		shortDesc,
-		longDesc, 
-		startDate, 
-		endDate 
+		longDesc,
+		startDate,
+		endDate
 	FROM
-		tickets t
+		(
+		SELECT
+			TID,
+			t.PID,
+			name,
+			CID,
+			SID,
+			shortDesc,
+			longDesc, 
+			startDate, 
+			endDate 
+		FROM
+			tickets t
+		INNER JOIN
+			(
+            SELECT
+				name,
+                PID    -- get users
+			FROM 
+				users
+			) u
+		ON
+			t.PID = u.PID  -- put ticket ids on users
+		) AS RES
 	INNER JOIN
-		(SELECT name, PID from users) u
+		(SELECT CID, category FROM categories) c 
 	ON
-		t.PID = u.PID
+		c.CID = RES.CID -- put category name on CID
 	) AS RES
-INNER JOIN
-	(SELECT CID, category FROM categories) c
+INNER JOIN 
+	(SELECT * FROM severities) s 
 ON
-	c.CID = RES.CID
+	s.SID = RES.SID -- put severity name on SID
+

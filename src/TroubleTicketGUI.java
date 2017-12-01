@@ -1045,8 +1045,8 @@ public class TroubleTicketGUI
 				try
 				{
 					//execute default query to populate search pane
-					System.out.printf("About to execute this query to populate our default results view: \n'%s'\n",SQLC.SEARCH_PANE_DEFAULT_QUERY.toString());
-					rs = dao.c.createStatement().executeQuery(SQLC.SEARCH_PANE_DEFAULT_QUERY.toString());
+					System.out.printf("About to execute this query to populate our default results view: \n'%s'\n",SQLC.SEARCH_PANE_DEFAULT_QUERY2.toString());
+					rs = dao.c.createStatement().executeQuery(SQLC.SEARCH_PANE_DEFAULT_QUERY2.toString());
 				}
 				catch (SQLException e1)
 				{
