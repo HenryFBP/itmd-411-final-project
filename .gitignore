@@ -5,3 +5,5 @@
 /lib/*
 login.txt
 .classpath
+/.classpath
+./.classpath
