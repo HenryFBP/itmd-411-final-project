@@ -41,13 +41,11 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableModel;
 
-import org.eclipse.wb.swing.FocusTraversalOnArray;
-
 import com.toedter.calendar.JDateChooser;
 
 public class TroubleTicketGUI
 {
-	public static int DEFAULT_LOGIN_MODE = 0; // Which entry should be used? If this is too large, the last one will be
+	public static int DEFAULT_LOGIN_MODE = 1; // Which entry should be used? If this is too large, the last one will be
 												// used.
 	public static final String LOGINS_FILE_PATH = "login.txt"; // Where are our logins and passwords stored? This is for
 																// security and for not committing passwords to git.
@@ -848,8 +846,8 @@ public class TroubleTicketGUI
 		comboBoxSeverity.setFont(new Font("Dialog", Font.BOLD, 15));
 		panelSeverity.add(comboBoxSeverity, BorderLayout.CENTER);
 
-		panelSeverity.setFocusTraversalPolicy(
-				new FocusTraversalOnArray(new Component[] { comboBoxSeverity, labelSeverity }));
+//		panelSeverity.setFocusTraversalPolicy(
+//				new FocusTraversalOnArray(new Component[] { comboBoxSeverity, labelSeverity }));
 		setupSeverities(comboBoxSeverity); // grab list of possible severities
 											// from server's severity table
 

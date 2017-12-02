@@ -4,15 +4,15 @@
  */
 public enum SQLC
 {
-	
+	TABLE_PREFIX			("h1_j1_"),
 	SQL_STR_TO_DATE_FORMAT	("%Y-%m-%d %H:%i:%s"),
 	SQL_DATE_FORMAT			("yyyy-MM-dd hh:mm:ss"),
 	
-	TABLE_USERS					("users"),
-	TABLE_TICKETS				("tickets"),
-	TABLE_USER_TYPES			("user_types"),
-	TABLE_CATEGORIES			("categories"),
-	TABLE_SEVERITIES			("severities"),
+	TABLE_USERS					(TABLE_PREFIX+"users"),
+	TABLE_TICKETS				(TABLE_PREFIX+"tickets"),
+	TABLE_USER_TYPES			(TABLE_PREFIX+"user_types"),
+	TABLE_CATEGORIES			(TABLE_PREFIX+"categories"),
+	TABLE_SEVERITIES			(TABLE_PREFIX+"severities"),
 
 	PASSWORD_COLUMN_NAME		("password"),
 	USERTYPE_COLUMN_NAME		("user_type"),

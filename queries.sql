@@ -1,8 +1,8 @@
-CREATE DATABASE IF NOT EXISTS testdb;
-USE testdb;
+CREATE DATABASE IF NOT EXISTS 411labs;
+USE 411labs;
 
-DROP TABLE IF EXISTS users;
-CREATE TABLE IF NOT EXISTS users
+DROP TABLE IF EXISTS h1_j1_users;
+CREATE TABLE IF NOT EXISTS h1_j1_users
 (
 	PID					INTEGER 	NOT NULL UNIQUE AUTO_INCREMENT,
     username			VARCHAR(64) NOT NULL UNIQUE,
@@ -14,31 +14,31 @@ CREATE TABLE IF NOT EXISTS users
     
     PRIMARY KEY (PID, username)
 );	
-DESCRIBE users;
+DESCRIBE h1_j1_users;
 
-DROP TABLE IF EXISTS categories;
-CREATE TABLE IF NOT EXISTS categories
+DROP TABLE IF EXISTS h1_j1_categories;
+CREATE TABLE IF NOT EXISTS h1_j1_categories
 (
 	CID			INTEGER			NOT NULL UNIQUE AUTO_INCREMENT,
     category	VARCHAR(64)		NOT NULL,
     
     PRIMARY KEY (CID)
 );
-DESCRIBE categories;
+DESCRIBE h1_j1_categories;
 
-DROP TABLE IF EXISTS severities;
-CREATE TABLE IF NOT EXISTS severities
+DROP TABLE IF EXISTS h1_j1_severities;
+CREATE TABLE IF NOT EXISTS h1_j1_severities
 (
 	SID				INTEGER			NOT NULL UNIQUE AUTO_INCREMENT,
     severity_level	VARCHAR(64)		NOT NULL,
     
     PRIMARY KEY (SID)
 );
-DESCRIBE severities;
+DESCRIBE h1_j1_severities;
 
 
-DROP TABLE IF EXISTS tickets;
-CREATE TABLE IF NOT EXISTS tickets 
+DROP TABLE IF EXISTS h1_j1_tickets;
+CREATE TABLE IF NOT EXISTS h1_j1_tickets 
 (
 	TID			INTEGER 		NOT NULL UNIQUE AUTO_INCREMENT,
     PID	 		INTEGER 		NOT NULL,
@@ -50,50 +50,50 @@ CREATE TABLE IF NOT EXISTS tickets
     endDate		DATE,
     
     PRIMARY KEY (TID),
-    FOREIGN KEY (PID) REFERENCES users(PID),
-    FOREIGN KEY (CID) REFERENCES categories(CID)
+    FOREIGN KEY (PID) REFERENCES h1_j1_users(PID),
+    FOREIGN KEY (CID) REFERENCES h1_j1_categories(CID)
 );
-DESCRIBE tickets;
+DESCRIBE h1_j1_tickets;
 
-DROP TABLE IF EXISTS user_types;
-CREATE TABLE IF NOT EXISTS user_types
+DROP TABLE IF EXISTS h1_j1_user_types;
+CREATE TABLE IF NOT EXISTS h1_j1_user_types
 (
 	user_type			INTEGER			NOT NULL UNIQUE AUTO_INCREMENT,
     user_type_string	VARCHAR(20)		NOT NULL,
     
     PRIMARY KEY (user_type)
 );
-DESCRIBE user_types;
+DESCRIBE h1_j1_user_types;
 
 
 INSERT INTO
-	categories (category)
+	h1_j1_categories (category)
 VALUES
 ('other'),
 ('tech'),
 ('building');
-SELECT * FROM categories;
+SELECT * FROM h1_j1_categories;
 
 INSERT INTO
-	severities (severity_level)
+	h1_j1_severities (severity_level)
 VALUES
 ('only me affected'), 
 ('room affected'), 
 ('office affected'), 
 ('building affected'), 
 ('armageddon');
-SELECT * FROM severities;
+SELECT * FROM h1_j1_severities;
 
 
 INSERT INTO 
-	user_types (user_type_string) 
+	h1_j1_user_types (user_type_string) 
 VALUES
 ('NORMAL_USER'),
 ('ADMINISTRATOR');
-SELECT * FROM user_types;
+SELECT * FROM h1_j1_user_types;
  
 INSERT INTO
-	users (username, password, email, name, user_type)
+	h1_j1_users (username, password, email, name, user_type)
 VALUES
 ('HenryFBP','iamapassword','hpost@hawk.iit.edu','Henry Post',2),
 ('bolo','alsopassword','jbolo@hawk.iit.edu','Dartor Bolo',1),
@@ -104,16 +104,16 @@ VALUES
 SELECT * FROM users;
 
 INSERT INTO
-	tickets (PID, shortDesc, longDesc, CID, SID, startDate)
+	h1_j1_tickets (PID, shortDesc, longDesc, CID, SID, startDate)
 VALUES
 	(2, 'henry is asleep', 		'henry has fallen asleep at his desk', 1, 1, DATE(NOW())),
 	(1, 'bolo staring at me', 	'bolo is staring at me. I think he thinks i\'m asleep.', 1, 1, DATE(NOW()));
-SELECT * FROM tickets;
+SELECT * FROM h1_j1_tickets;
 
 -- 1 row(s) affected, 1 warning(s): 1292 Incorrect date value: '2017-11-30 19:09:37' for column 'endDate' at row 1 Rows matched: 1  Changed: 1  Warnings: 1
 
 
-UPDATE tickets
+UPDATE h1_j1_tickets
 	SET endDate = ADDDATE(NOW(), INTERVAL 1 DAY)
     WHERE TID = 1;
     
@@ -155,14 +155,14 @@ FROM
 			startDate, 
 			endDate 
 		FROM
-			tickets t
+			h1_j1_tickets t
 		INNER JOIN
 			(
             SELECT
 				name,
                 PID    -- get users
 			FROM 
-				users
+				h1_j1_users
 			) u
 		ON
 			t.PID = u.PID  -- put ticket ids on users
@@ -173,7 +173,7 @@ FROM
 		c.CID = RES.CID -- put category name on CID
 	) AS RES
 INNER JOIN 
-	(SELECT * FROM severities) s 
+	(SELECT * FROM h1_j1_severities) s 
 ON
 	s.SID = RES.SID -- put severity name on SID
 
