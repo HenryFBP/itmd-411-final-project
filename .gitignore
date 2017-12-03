@@ -4,6 +4,5 @@
 *.class
 /lib/*
 login.txt
-.classpath
-/.classpath
-./.classpath
+.*
+!.gitignore
