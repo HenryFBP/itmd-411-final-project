@@ -168,7 +168,7 @@ FROM
 			t.PID = u.PID  -- put ticket ids on users
 		) AS RES
 	INNER JOIN
-		(SELECT CID, category FROM categories) c 
+		(SELECT CID, category FROM h1_j1_categories) c 
 	ON
 		c.CID = RES.CID -- put category name on CID
 	) AS RES
