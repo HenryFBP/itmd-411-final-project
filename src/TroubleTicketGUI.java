@@ -80,7 +80,7 @@ public class TroubleTicketGUI
 	 * @param jp  The JPanel to be shown
 	 * @param e  The actionEvent that tells us what button was clicked.
 	 */
-	public void modifyRightPane(JPanel jp, ActionEvent e)
+	public void modifyRightPane(JPanel jp, ActionEvent e, String panelName)
 	{
 		JPanel panel = panelModifyTicket;
 
@@ -92,7 +92,7 @@ public class TroubleTicketGUI
 		Util.printf("About to do cl.show('%s', '%s')\n", panelRightContent.getName(), jp.getName());
 
 		cl.show(panelRightContent, jp.getName());
-		label.setText(button.getText());
+		label.setText(panelName);
 	}
 
 	/***
@@ -704,7 +704,7 @@ public class TroubleTicketGUI
 			 */
 			public void actionPerformed(ActionEvent e)
 			{
-				modifyRightPane(panelLogin, e);
+				modifyRightPane(panelLogin, e, btnLogin.getText());
 			}
 		});
 		
@@ -718,11 +718,14 @@ public class TroubleTicketGUI
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
-				modifyRightPane(panelLogin, e);
 				Util.disableButtons(panelMenu, new String[]{BUTTON_LOGIN_NAME}); //disable all but log in
-
+				modifyRightPane(panelLogin, e, btnLogin.getText());
+				
 				textFieldPassword.setText("");
 				textFieldUsername.setText("");
+				lblWhosLoggedIn.setText(GUIC.NOT_LOGGED_IN.s());
+				
+				textFieldUsername.grabFocus();
 				
 				dao.logout(); //log them out
 			}
@@ -736,7 +739,7 @@ public class TroubleTicketGUI
 			 */
 			public void actionPerformed(ActionEvent e)
 			{
-				modifyRightPane(panelModifyTicket, e);
+				modifyRightPane(panelModifyTicket, e, btnModifyTicket.getText());
 			}
 		});
 
@@ -747,7 +750,7 @@ public class TroubleTicketGUI
 			 */
 			public void actionPerformed(ActionEvent e)
 			{
-				modifyRightPane(panelSearch, e);
+				modifyRightPane(panelSearch, e, btnSearch.getText());
 
 				comboBoxField.removeAllItems();
 				comboBoxOperator.removeAllItems();
@@ -827,7 +830,7 @@ public class TroubleTicketGUI
 			 */
 			public void actionPerformed(ActionEvent e)
 			{
-				modifyRightPane(panelNewTicket, e);
+				modifyRightPane(panelNewTicket, e, btnNewTicket.getText());
 			}
 		});
 
