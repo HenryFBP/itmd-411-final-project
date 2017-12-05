@@ -49,14 +49,11 @@ public class TroubleTicketGUI
 												// used.
 	public static final String LOGINS_FILE_PATH = "login.txt"; // Where are our logins and passwords stored? This is for
 																// security and for not committing passwords to git.
-
+	
 	public static final int PADDING = 10;
 	public static final int DEFAULT_DIVIDER_WIDTH = 150;
 
-	public static final String NORTH = SpringLayout.NORTH;
-	public static final String EAST = SpringLayout.EAST;
-	public static final String SOUTH = SpringLayout.SOUTH;
-	public static final String WEST = SpringLayout.WEST;
+
 
 	public static final String NESW = "NESW";
 	public static final String PREFERRED_TIME_FORMAT = "MMM d, yyyy, hh:mm:ss aa";
@@ -67,89 +64,16 @@ public class TroubleTicketGUI
 	private static final String BUTTON_MODIFY_TICKET_NAME = "btnModifyTicket";
 	private static final String BUTTON_SEARCH_NAME = "btnSearch";
 	
-	public static final String MUST_ENTER_DATE = "You must enter a date here.";
+
 	
 	private static final String PANEL_RIGHT_CONTENT_NAME = "panelRightContent";
-
-	private static final String NOT_LOGGED_IN = "Not currently logged in.";
 
 	public static final Border borderDefault = new JTextField().getBorder();
 	public static final Border borderBad = BorderFactory.createLineBorder(Color.RED);
 
 	public static Dao dao;
 
-	public static String oppositeDirection(String direction)
-	{
-		switch (direction.toUpperCase().charAt(0))
-		{
-		case 'N':
-			return SOUTH;
-		case 'E':
-			return WEST;
-		case 'S':
-			return NORTH;
-		case 'W':
-			return EAST;
-		default:
-			return null;
-		}
 
-	}
-
-	public static void printf(String s, Object... args)
-	{
-		System.out.printf(s, args);
-	}
-
-	public static void print(String s)
-	{
-		System.out.print(s);
-	}
-
-	public static void println(String s)
-	{
-		System.out.println(s);
-	}
-
-	public static Component getVisibleComponent(JPanel jp)
-	{
-		for (Component c : jp.getComponents())
-		{
-			if (c.isVisible())
-			{
-				return c;
-			}
-		}
-		return null;
-	}
-
-	public static ArrayList<JButton> getButtonsFromJPanel(JPanel jp)
-	{
-		ArrayList<JButton> ret = new ArrayList<>();
-
-		for (Component c : jp.getComponents())
-		{
-			if (c instanceof JButton)
-			{
-				ret.add((JButton) c);
-			}
-		}
-		return ret;
-	}
-	
-	public static ArrayList<Component> getComponentsFromJPanel(JPanel jp)
-	{
-		ArrayList<Component> ret = new ArrayList<>();
-		
-		for (Component c : jp.getComponents())
-		{
-			if (c instanceof Component)
-			{
-				ret.add((Component) c);
-			}
-		}
-		return ret;
-	}
 
 	/***
 	 * This grabs the comparator ('>', '=', '!='), and the two operands (name, id,
@@ -173,7 +97,7 @@ public class TroubleTicketGUI
 	{
 		ArrayList<String> excludedComponentsAR = new ArrayList<>(Arrays.asList(excludedComponents));
 		
-		ArrayList<Component> components = getComponentsFromJPanel(container);
+		ArrayList<Component> components = Util.getComponentsFromJPanel(container);
 		SpringLayout tempSL = (SpringLayout) container.getLayout();
 		
 		for (int i = 0; i < components.size(); i++)
@@ -193,136 +117,6 @@ public class TroubleTicketGUI
 	}
 	
 	
-	/***
-	 * Makes all buttons inside of a JPanel disabled/unclickable.
-	 * @param buttonContainer	The container that has the buttons inside of it
-	 * @param excludedButtons 	Names of buttons to not be disabled.
-	 * @param enableAll 	 	Enable all buttons instead of disabling?
-	 */
-	public static void disableButtons(JPanel buttonContainer, String[] excludedButtons, Boolean enableAll)
-	{
-		ArrayList<String> excludedButtonsAR = new ArrayList<>(Arrays.asList(excludedButtons));
-		
-		ArrayList<JButton> menuButtons = getButtonsFromJPanel(buttonContainer);
-		SpringLayout tempSL = (SpringLayout) buttonContainer.getLayout();
-		
-		for(int i = 0; i < menuButtons.size(); i++)
-		{
-			JButton tempButton = menuButtons.get(i);
-			
-			tempButton.setEnabled(false); //assume it should be disabled
-			
-			if(enableAll || excludedButtonsAR.contains(tempButton.getName()))
-			{
-				tempButton.setEnabled(true);
-			}
-		}
-	}
-
-
-	public static void disableButtons(JPanel buttonContainer, String[] excludedButtons)
-	{
-		disableButtons(buttonContainer, excludedButtons, false);
-	}
-	
-	public void disableButtons(JPanel buttonContainer)
-	{
-		disableButtons(buttonContainer, new String[] {});
-	}
-	
-	public static void enableButtons(JPanel buttonContainer)
-	{
-		disableButtons(buttonContainer, new String[] {}, true);
-	}
-	
-
-/***
- * Populates a comboBox with a list gotten from an SQL table.
- * The SQL table should look like this:
- * <pre>
- * <code>
- * +----+-------------+
- * | <b>id</b> |     str     |
- * +----+-------------+
- * | 1  |    bad      |
- * | 2  |    good     |
- * | 3  |    great    |
- * | 4  |  excellent  |
- * +----+-------------+
- * </pre>
- * </code>
- * 
- * and produces this JComboBox:
- * <pre>
- * <code>
- * +------------------+
- * | 1 - bad          |
- * | 2 - good         |
- * | 3 - great        |
- * | 4 - excellent    |
- * +------------------+
- * </pre>
- * </code>
- * @param comboBox
- * @param tableName
- */
-	public void setupComboBox(JComboBox<String> comboBox, String tableName)
-	{
-		try
-		{
-			Statement s = this.dao.c.createStatement();
-			
-			String query = String.format("SELECT * FROM %s",tableName);
-			
-			printf("Grabbing category list from database with the following query: \n'%s'\n",query);
-			
-			ResultSet rs = s.executeQuery(query);
-			ResultSetMetaData rsmd = rs.getMetaData();
-			
-			comboBox.removeAll();
-			comboBox.setModel(new DefaultComboBoxModel<>());
-			
-			while(rs.next())
-			{
-				String onecol = "";
-				
-				for(int i = 1; i <= rsmd.getColumnCount(); i++)
-				{
-					if(i != 1)
-					{
-						onecol += " - ";
-					}
-					
-					onecol += rs.getString(i).toString();
-				}
-				
-				printf("Adding string '%s' to comboBox!\n",onecol);
-				comboBox.addItem(onecol);
-			}
-			
-			
-			
-			
-		}
-		catch (SQLException e)
-		{
-			e.printStackTrace();
-		}
-	}
-	
-	public void setupCategories(JComboBox<String> comboBox)
-	{
-		setupComboBox(comboBox, SQLC.TABLE_CATEGORIES.ts());
-	}
-	
-	public void setupSeverities(JComboBox<String> comboBox)
-	{
-		setupComboBox(comboBox, SQLC.TABLE_SEVERITIES.ts());
-	}
-	
-	
-	
-	
 	
 	/**
 	 * @param buttonContainer
@@ -334,25 +128,25 @@ public class TroubleTicketGUI
 	public void formatButtons(JPanel buttonContainer)
 	{
 		// insert formatting for all buttons.
-		ArrayList<JButton> menuButtons = getButtonsFromJPanel(buttonContainer);
+		ArrayList<JButton> menuButtons = Util.getButtonsFromJPanel(buttonContainer);
 		SpringLayout tempSL = (SpringLayout) buttonContainer.getLayout();
 
 		for (int i = 0; i < menuButtons.size(); i++)
 		{
 			JButton tempButton = menuButtons.get(i);
-			printf("menuButtons[%d] = %s\n", i, tempButton);
+			Util.printf("menuButtons[%d] = %s\n", i, tempButton);
 
-			tempSL.putConstraint(WEST, tempButton, PADDING, WEST, buttonContainer);
-			tempSL.putConstraint(EAST, tempButton, -PADDING, EAST, buttonContainer);
+			tempSL.putConstraint(Util.WEST, tempButton, PADDING, Util.WEST, buttonContainer);
+			tempSL.putConstraint(Util.EAST, tempButton, -PADDING, Util.EAST, buttonContainer);
 
 			if (i == 0) // first button aligns vertically w/ container
 			{
-				tempSL.putConstraint(NORTH, tempButton, PADDING, NORTH, buttonContainer);
+				tempSL.putConstraint(Util.NORTH, tempButton, PADDING, Util.NORTH, buttonContainer);
 			}
 			else // all others align with south side of prev. button
 			{
 				JButton prevButton = menuButtons.get(i - 1);
-				tempSL.putConstraint(NORTH, tempButton, PADDING, SOUTH, prevButton);
+				tempSL.putConstraint(Util.NORTH, tempButton, PADDING, Util.SOUTH, prevButton);
 			}
 		}
 	}
@@ -365,8 +159,8 @@ public class TroubleTicketGUI
 		JLabel label = lblCurrentPane;
 		JButton button = (JButton) e.getSource();
 
-		println("Someone clicked button '" + button.getName() + "' or '" + button.getText() + "'");
-		printf("About to do cl.show('%s', '%s')\n", panelRightContent.getName(), jp.getName());
+		Util.println("Someone clicked button '" + button.getName() + "' or '" + button.getText() + "'");
+		Util.printf("About to do cl.show('%s', '%s')\n", panelRightContent.getName(), jp.getName());
 
 		cl.show(panelRightContent, jp.getName());
 		label.setText(button.getText());
@@ -398,7 +192,7 @@ public class TroubleTicketGUI
 		{// log them in!
 			
 			setTooltips(panelMenu,new String[] {}, ""); //reset tooltips
-			enableButtons(panelMenu);					//enable all buttons
+			Util.enableButtons(panelMenu);					//enable all buttons
 			
 			
 			if (result == Dao.NORMAL_USER)
@@ -513,8 +307,8 @@ public class TroubleTicketGUI
 	public static void main(String[] args)
 	{
 
-		ArrayList<ArrayList<String>> logins = Dao.getLoginsFromFile(LOGINS_FILE_PATH);
-
+		ArrayList<ArrayList<String>> logins = Util.getLoginsFromFile(LOGINS_FILE_PATH);
+		
 		int i = 0;
 		for (ArrayList<String> login : logins)
 		{
@@ -528,7 +322,7 @@ public class TroubleTicketGUI
 			DEFAULT_LOGIN_MODE = logins.size() - 1;
 		}
 
-		printf("\n\nWe're going to use the %dth entry in '%s', aka '%s'.\n\n", DEFAULT_LOGIN_MODE, LOGINS_FILE_PATH,
+		Util.printf("\n\nWe're going to use the %dth entry in '%s', aka '%s'.\n\n", DEFAULT_LOGIN_MODE, LOGINS_FILE_PATH,
 				logins.get(DEFAULT_LOGIN_MODE));
 
 		ArrayList<String> login = logins.get(DEFAULT_LOGIN_MODE);
@@ -558,7 +352,6 @@ public class TroubleTicketGUI
 	 */
 	private void initialize()
 	{
-
 		frame = new JFrame();
 		frame.setBounds(100, 100, 926, 682);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -567,10 +360,10 @@ public class TroubleTicketGUI
 
 		splitPane = new JSplitPane();
 		splitPane.setName("splitPane");
-		springLayout.putConstraint(SOUTH, splitPane, 0, SOUTH, frame.getContentPane());
-		springLayout.putConstraint(EAST, splitPane, 0, EAST, frame.getContentPane());
-		springLayout.putConstraint(NORTH, splitPane, 0, NORTH, frame.getContentPane());
-		springLayout.putConstraint(WEST, splitPane, 0, WEST, frame.getContentPane());
+		springLayout.putConstraint(Util.SOUTH, splitPane, 0, Util.SOUTH, frame.getContentPane());
+		springLayout.putConstraint(Util.EAST, splitPane, 0, Util.EAST, frame.getContentPane());
+		springLayout.putConstraint(Util.NORTH, splitPane, 0, Util.NORTH, frame.getContentPane());
+		springLayout.putConstraint(Util.WEST, splitPane, 0, Util.WEST, frame.getContentPane());
 		frame.getContentPane().add(splitPane, splitPane.getName());
 
 		panelLeft = new JPanel();
@@ -608,10 +401,10 @@ public class TroubleTicketGUI
 		panelStatus = new JPanel();
 		splitPaneLeft.setLeftComponent(panelStatus);
 
-		lblCurrentlyLoggedIn = new JLabel("Currently logged in as:");
+		lblCurrentlyLoggedIn = new JLabel(GUIC.CURRENTLY_LOGGED_IN_TEXT.s());
 		panelStatus.add(lblCurrentlyLoggedIn);
 
-		lblWhosLoggedIn = new JLabel(NOT_LOGGED_IN);
+		lblWhosLoggedIn = new JLabel(GUIC.NOT_LOGGED_IN+"");
 		lblWhosLoggedIn.setFont(new Font("Dialog", Font.PLAIN, 12));
 		panelStatus.add(lblWhosLoggedIn);
 		splitPaneLeft.setDividerLocation(100);
@@ -622,10 +415,10 @@ public class TroubleTicketGUI
 		panelRight.setLayout(sl_panelRight);
 
 		panelRightContent = new JPanel();
-		sl_panelRight.putConstraint(SOUTH, panelRightContent, 0, SOUTH, panelRight);
-		sl_panelRight.putConstraint(EAST, panelRightContent, 0, EAST, panelRight);
+		sl_panelRight.putConstraint(Util.SOUTH, panelRightContent, 0, Util.SOUTH, panelRight);
+		sl_panelRight.putConstraint(Util.EAST, panelRightContent, 0, Util.EAST, panelRight);
 		panelRightContent.setName(PANEL_RIGHT_CONTENT_NAME);
-		sl_panelRight.putConstraint(WEST, panelRightContent, 0, WEST, panelRight);
+		sl_panelRight.putConstraint(Util.WEST, panelRightContent, 0, Util.WEST, panelRight);
 		panelRight.add(panelRightContent, panelRightContent.getName());
 		panelRightContent.setLayout(new CardLayout(0, 0));
 
@@ -644,9 +437,9 @@ public class TroubleTicketGUI
 		panelRightContent.add(panelSearch, panelSearch.getName());
 
 		panelLoginErrorMsg = new JPanel();
-		sl_panelLogin.putConstraint(SpringLayout.NORTH, panelLoginErrorMsg, 10, SpringLayout.NORTH, panelLogin);
-		sl_panelLogin.putConstraint(SpringLayout.WEST, panelLoginErrorMsg, 10, SpringLayout.WEST, panelLogin);
-		sl_panelLogin.putConstraint(SpringLayout.EAST, panelLoginErrorMsg, -10, SpringLayout.EAST, panelLogin);
+		sl_panelLogin.putConstraint(Util.NORTH, panelLoginErrorMsg, PADDING, Util.NORTH, panelLogin);
+		sl_panelLogin.putConstraint(Util.WEST, panelLoginErrorMsg, PADDING, Util.WEST, panelLogin);
+		sl_panelLogin.putConstraint(Util.EAST, panelLoginErrorMsg, -PADDING, Util.EAST, panelLogin);
 		panelLogin.add(panelLoginErrorMsg);
 		panelLoginErrorMsg.setLayout(new BorderLayout(0, 0));
 
@@ -655,35 +448,35 @@ public class TroubleTicketGUI
 		panelLoginErrorMsg.add(lblLoginErrorMsg, BorderLayout.CENTER);
 
 		panelUsername = new JPanel();
-		sl_panelLogin.putConstraint(SpringLayout.NORTH, panelUsername, 60, SpringLayout.NORTH, panelLogin);
-		sl_panelLogin.putConstraint(SpringLayout.SOUTH, panelLoginErrorMsg, -6, SpringLayout.NORTH, panelUsername);
-		sl_panelLogin.putConstraint(SpringLayout.WEST, panelUsername, 10, SpringLayout.WEST, panelLogin);
-		sl_panelLogin.putConstraint(SpringLayout.EAST, panelUsername, -10, SpringLayout.EAST, panelLogin);
+		sl_panelLogin.putConstraint(Util.NORTH, panelUsername, 60, Util.NORTH, panelLogin);
+		sl_panelLogin.putConstraint(Util.SOUTH, panelLoginErrorMsg, -6, Util.NORTH, panelUsername);
+		sl_panelLogin.putConstraint(Util.WEST, panelUsername, PADDING, Util.WEST, panelLogin);
+		sl_panelLogin.putConstraint(Util.EAST, panelUsername, -PADDING, Util.EAST, panelLogin);
 		panelLogin.add(panelUsername);
 		sl_panelUsername = new SpringLayout();
 		panelUsername.setLayout(sl_panelUsername);
 
 		lblUsername = new JLabel("Username");
-		sl_panelUsername.putConstraint(SpringLayout.WEST, lblUsername, 10, SpringLayout.WEST, panelUsername);
-		sl_panelUsername.putConstraint(SpringLayout.EAST, lblUsername, -10, SpringLayout.EAST, panelUsername);
+		sl_panelUsername.putConstraint(Util.WEST, lblUsername, PADDING, Util.WEST, panelUsername);
+		sl_panelUsername.putConstraint(Util.EAST, lblUsername, -PADDING, Util.EAST, panelUsername);
 		lblUsername.setHorizontalAlignment(SwingConstants.CENTER);
-		sl_panelUsername.putConstraint(SpringLayout.NORTH, lblUsername, 5, SpringLayout.NORTH, panelUsername);
+		sl_panelUsername.putConstraint(Util.NORTH, lblUsername, 5, Util.NORTH, panelUsername);
 		panelUsername.add(lblUsername);
-		sl_panelLogin.putConstraint(WEST, lblUsername, 41, WEST, panelLogin);
-		sl_panelLogin.putConstraint(SpringLayout.SOUTH, lblUsername, -397, SpringLayout.SOUTH, panelLogin);
+		sl_panelLogin.putConstraint(Util.WEST, lblUsername, 41, Util.WEST, panelLogin);
+		sl_panelLogin.putConstraint(Util.SOUTH, lblUsername, -397, Util.SOUTH, panelLogin);
 
 		panelPassword = new JPanel();
-		sl_panelLogin.putConstraint(SpringLayout.NORTH, panelPassword, 129, SpringLayout.NORTH, panelLogin);
-		sl_panelLogin.putConstraint(SpringLayout.SOUTH, panelPassword, -36, SpringLayout.SOUTH, panelLogin);
-		sl_panelLogin.putConstraint(SpringLayout.SOUTH, panelUsername, 0, SpringLayout.NORTH, panelPassword);
-		sl_panelLogin.putConstraint(SpringLayout.WEST, panelPassword, 10, SpringLayout.WEST, panelLogin);
-		sl_panelLogin.putConstraint(SpringLayout.EAST, panelPassword, -10, SpringLayout.EAST, panelLogin);
+		sl_panelLogin.putConstraint(Util.NORTH, panelPassword, 129, Util.NORTH, panelLogin);
+		sl_panelLogin.putConstraint(Util.SOUTH, panelPassword, -36, Util.SOUTH, panelLogin);
+		sl_panelLogin.putConstraint(Util.SOUTH, panelUsername, 0, Util.NORTH, panelPassword);
+		sl_panelLogin.putConstraint(Util.WEST, panelPassword, PADDING, Util.WEST, panelLogin);
+		sl_panelLogin.putConstraint(Util.EAST, panelPassword, -PADDING, Util.EAST, panelLogin);
 
 		panelUsernameMiddle = new JPanel();
-		sl_panelUsername.putConstraint(SpringLayout.NORTH, panelUsernameMiddle, 0, SpringLayout.SOUTH, lblUsername);
-		sl_panelUsername.putConstraint(SpringLayout.WEST, panelUsernameMiddle, 10, SpringLayout.WEST, panelUsername);
-		sl_panelUsername.putConstraint(SpringLayout.SOUTH, panelUsernameMiddle, -10, SpringLayout.SOUTH, panelUsername);
-		sl_panelUsername.putConstraint(SpringLayout.EAST, panelUsernameMiddle, -10, SpringLayout.EAST, panelUsername);
+		sl_panelUsername.putConstraint(Util.NORTH, panelUsernameMiddle, 0, Util.SOUTH, lblUsername);
+		sl_panelUsername.putConstraint(Util.WEST, panelUsernameMiddle, PADDING, Util.WEST, panelUsername);
+		sl_panelUsername.putConstraint(Util.SOUTH, panelUsernameMiddle, -PADDING, Util.SOUTH, panelUsername);
+		sl_panelUsername.putConstraint(Util.EAST, panelUsernameMiddle, -PADDING, Util.EAST, panelUsername);
 		panelUsername.add(panelUsernameMiddle);
 
 		textFieldUsername = new JTextField();
@@ -695,46 +488,42 @@ public class TroubleTicketGUI
 		panelPassword.setLayout(sl_panelPassword);
 
 		lblPassword = new JLabel("Password");
-		sl_panelPassword.putConstraint(SpringLayout.WEST, lblPassword, 0, SpringLayout.WEST, panelPassword);
-		sl_panelPassword.putConstraint(SpringLayout.EAST, lblPassword, 0, SpringLayout.EAST, panelPassword);
+		sl_panelPassword.putConstraint(Util.WEST, lblPassword, 0, Util.WEST, panelPassword);
+		sl_panelPassword.putConstraint(Util.EAST, lblPassword, 0, Util.EAST, panelPassword);
 		lblPassword.setHorizontalAlignment(SwingConstants.CENTER);
-		sl_panelPassword.putConstraint(SpringLayout.NORTH, lblPassword, 5, SpringLayout.NORTH, panelPassword);
+		sl_panelPassword.putConstraint(Util.NORTH, lblPassword, 5, Util.NORTH, panelPassword);
 		panelPassword.add(lblPassword);
 
 		panelPasswordMiddle = new JPanel();
-		sl_panelPassword.putConstraint(SpringLayout.NORTH, panelPasswordMiddle, 6, SpringLayout.SOUTH, lblPassword);
-		sl_panelPassword.putConstraint(SpringLayout.WEST, panelPasswordMiddle, 10, SpringLayout.WEST, lblPassword);
-		sl_panelPassword.putConstraint(SpringLayout.EAST, panelPasswordMiddle, -10, SpringLayout.EAST, lblPassword);
+		sl_panelPassword.putConstraint(Util.NORTH, panelPasswordMiddle, 6, Util.SOUTH, lblPassword);
+		sl_panelPassword.putConstraint(Util.WEST, panelPasswordMiddle, PADDING, Util.WEST, lblPassword);
+		sl_panelPassword.putConstraint(Util.EAST, panelPasswordMiddle, -PADDING, Util.EAST, lblPassword);
 		panelPassword.add(panelPasswordMiddle);
 
 		textFieldPassword = new JPasswordField();
 		panelPasswordMiddle.add(textFieldPassword);
-		sl_panelPassword.putConstraint(SpringLayout.NORTH, textFieldPassword, 26, SpringLayout.NORTH, panelPassword);
-		sl_panelPassword.putConstraint(SpringLayout.WEST, textFieldPassword, 12, SpringLayout.WEST, panelPassword);
+		sl_panelPassword.putConstraint(Util.NORTH, textFieldPassword, 26, Util.NORTH, panelPassword);
+		sl_panelPassword.putConstraint(Util.WEST, textFieldPassword, 12, Util.WEST, panelPassword);
 		textFieldPassword.setToolTipText("password");
 		textFieldPassword.setColumns(10);
 
 		panelBtnLoginSubmitMiddle = new JPanel();
-		sl_panelPassword.putConstraint(SpringLayout.NORTH, panelBtnLoginSubmitMiddle, 6, SpringLayout.SOUTH,
-				panelPasswordMiddle);
-		sl_panelPassword.putConstraint(SpringLayout.WEST, panelBtnLoginSubmitMiddle, 10, SpringLayout.WEST,
-				panelPassword);
-		sl_panelPassword.putConstraint(SpringLayout.SOUTH, panelBtnLoginSubmitMiddle, 42, SpringLayout.SOUTH,
-				panelPasswordMiddle);
-		sl_panelPassword.putConstraint(SpringLayout.EAST, panelBtnLoginSubmitMiddle, -10, SpringLayout.EAST,
-				panelPassword);
+		sl_panelPassword.putConstraint(Util.NORTH, panelBtnLoginSubmitMiddle, 6, Util.SOUTH,panelPasswordMiddle);
+		sl_panelPassword.putConstraint(Util.WEST, panelBtnLoginSubmitMiddle, PADDING, Util.WEST,panelPassword);
+		sl_panelPassword.putConstraint(Util.SOUTH, panelBtnLoginSubmitMiddle, 42, Util.SOUTH,panelPasswordMiddle);
+		sl_panelPassword.putConstraint(Util.EAST, panelBtnLoginSubmitMiddle, -PADDING, Util.EAST,panelPassword);
 		panelPassword.add(panelBtnLoginSubmitMiddle);
 
 		btnLoginSubmit = new JButton("Submit");
 		panelBtnLoginSubmitMiddle.add(btnLoginSubmit);
 
 		panelRightTop = new JPanel();
-		sl_panelRight.putConstraint(NORTH, panelRightContent, 27, SpringLayout.NORTH, panelRightTop);
+		sl_panelRight.putConstraint(Util.NORTH, panelRightContent, 27, Util.NORTH, panelRightTop);
 		panelRightTop.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
-		sl_panelRight.putConstraint(NORTH, panelRightTop, 0, NORTH, panelRight);
-		sl_panelRight.putConstraint(WEST, panelRightTop, 0, WEST, panelRightContent);
-		sl_panelRight.putConstraint(SOUTH, panelRightTop, 0, NORTH, panelRightContent);
-		sl_panelRight.putConstraint(EAST, panelRightTop, 0, EAST, panelRightContent);
+		sl_panelRight.putConstraint(Util.NORTH, panelRightTop, 0, Util.NORTH, panelRight);
+		sl_panelRight.putConstraint(Util.WEST, panelRightTop, 0, Util.WEST, panelRightContent);
+		sl_panelRight.putConstraint(Util.SOUTH, panelRightTop, 0, Util.NORTH, panelRightContent);
+		sl_panelRight.putConstraint(Util.EAST, panelRightTop, 0, Util.EAST, panelRightContent);
 		panelRight.add(panelRightTop);
 
 		lblCurrentPane = new JLabel("THIS_SHOULD_BE_AUTO_REPLACED");
@@ -758,31 +547,27 @@ public class TroubleTicketGUI
 		panelShortDesc.setLayout(sl_panelShortDesc);
 
 		lblShortDesc = new JLabel("Short description / name");
-		sl_panelShortDesc.putConstraint(SpringLayout.NORTH, lblShortDesc, 10, SpringLayout.NORTH, panelShortDesc);
+		sl_panelShortDesc.putConstraint(Util.NORTH, lblShortDesc, PADDING, Util.NORTH, panelShortDesc);
 		lblShortDesc.setHorizontalAlignment(SwingConstants.CENTER);
-		sl_panelShortDesc.putConstraint(SpringLayout.WEST, lblShortDesc, 10, SpringLayout.WEST, panelShortDesc);
-		sl_panelShortDesc.putConstraint(SpringLayout.EAST, lblShortDesc, -10, SpringLayout.EAST, panelShortDesc);
+		sl_panelShortDesc.putConstraint(Util.WEST, lblShortDesc, PADDING, Util.WEST, panelShortDesc);
+		sl_panelShortDesc.putConstraint(Util.EAST, lblShortDesc, -PADDING, Util.EAST, panelShortDesc);
 		panelShortDesc.add(lblShortDesc);
 
 		panelTextAreaShortDesc = new JPanel();
-		sl_panelShortDesc.putConstraint(SpringLayout.NORTH, panelTextAreaShortDesc, 10, SpringLayout.SOUTH,
-				lblShortDesc);
-		sl_panelShortDesc.putConstraint(SpringLayout.WEST, panelTextAreaShortDesc, 10, SpringLayout.WEST,
-				panelShortDesc);
-		sl_panelShortDesc.putConstraint(SpringLayout.EAST, panelTextAreaShortDesc, -10, SpringLayout.EAST,
-				panelShortDesc);
+		sl_panelShortDesc.putConstraint(Util.NORTH, panelTextAreaShortDesc, PADDING, Util.SOUTH,lblShortDesc);
+		sl_panelShortDesc.putConstraint(Util.WEST, panelTextAreaShortDesc, PADDING, Util.WEST,panelShortDesc);
+		sl_panelShortDesc.putConstraint(Util.EAST, panelTextAreaShortDesc, -PADDING, Util.EAST,panelShortDesc);
 		panelTextAreaShortDesc.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-		sl_panelShortDesc.putConstraint(SpringLayout.SOUTH, panelTextAreaShortDesc, -10, SpringLayout.SOUTH,
-				panelShortDesc);
+		sl_panelShortDesc.putConstraint(Util.SOUTH, panelTextAreaShortDesc, -PADDING, Util.SOUTH,panelShortDesc);
 		panelShortDesc.add(panelTextAreaShortDesc);
 		panelTextAreaShortDesc.setLayout(new BorderLayout(0, 0));
 
 		textAreaShortDesc = new JTextArea();
 		panelTextAreaShortDesc.add(textAreaShortDesc);
-		sl_panelShortDesc.putConstraint(SpringLayout.NORTH, textAreaShortDesc, 6, SpringLayout.SOUTH, lblShortDesc);
-		sl_panelShortDesc.putConstraint(SpringLayout.WEST, textAreaShortDesc, 10, SpringLayout.WEST, panelShortDesc);
-		sl_panelShortDesc.putConstraint(SpringLayout.SOUTH, textAreaShortDesc, -10, SpringLayout.SOUTH, panelShortDesc);
-		sl_panelShortDesc.putConstraint(SpringLayout.EAST, textAreaShortDesc, -10, SpringLayout.EAST, panelShortDesc);
+		sl_panelShortDesc.putConstraint(Util.NORTH, textAreaShortDesc, 6, Util.SOUTH, lblShortDesc);
+		sl_panelShortDesc.putConstraint(Util.WEST, textAreaShortDesc, PADDING, Util.WEST, panelShortDesc);
+		sl_panelShortDesc.putConstraint(Util.SOUTH, textAreaShortDesc, -PADDING, Util.SOUTH, panelShortDesc);
+		sl_panelShortDesc.putConstraint(Util.EAST, textAreaShortDesc, -PADDING, Util.EAST, panelShortDesc);
 		textAreaShortDesc.setColumns(10);
 
 		panelCategory = new JPanel();
@@ -805,7 +590,7 @@ public class TroubleTicketGUI
 		labelCategory.setHorizontalAlignment(SwingConstants.CENTER);
 		panelCategory.add(labelCategory, BorderLayout.NORTH);
 
-		setupCategories(comboBoxCategory); // grab list of possible categories
+		Util.setupCategories(comboBoxCategory,this.dao); // grab list of possible categories
 											// from server's category table
 
 		panelDateStarted = new JPanel();
@@ -846,10 +631,9 @@ public class TroubleTicketGUI
 		comboBoxSeverity.setFont(new Font("Dialog", Font.BOLD, 15));
 		panelSeverity.add(comboBoxSeverity, BorderLayout.CENTER);
 
-//		panelSeverity.setFocusTraversalPolicy(
-//				new FocusTraversalOnArray(new Component[] { comboBoxSeverity, labelSeverity }));
-		setupSeverities(comboBoxSeverity); // grab list of possible severities
-											// from server's severity table
+
+		Util.setupSeverities(comboBoxSeverity, this.dao); 	// grab list of possible severities
+															// from server's severity table
 
 		panelDateEnded = new JPanel();
 		GridBagConstraints gbc_panelDateEnded = new GridBagConstraints();
@@ -882,20 +666,20 @@ public class TroubleTicketGUI
 		panelLongDesc.setLayout(sl_panelLongDesc);
 
 		lblLongDescription = new JLabel("Long description");
-		sl_panelLongDesc.putConstraint(SpringLayout.NORTH, lblLongDescription, 0, SpringLayout.NORTH, panelLongDesc);
-		sl_panelLongDesc.putConstraint(SpringLayout.WEST, lblLongDescription, 10, SpringLayout.WEST, panelLongDesc);
-		sl_panelLongDesc.putConstraint(SpringLayout.EAST, lblLongDescription, -10, SpringLayout.EAST, panelLongDesc);
+		sl_panelLongDesc.putConstraint(Util.NORTH, lblLongDescription, 0, Util.NORTH, panelLongDesc);
+		sl_panelLongDesc.putConstraint(Util.WEST, lblLongDescription, PADDING, Util.WEST, panelLongDesc);
+		sl_panelLongDesc.putConstraint(Util.EAST, lblLongDescription, -PADDING, Util.EAST, panelLongDesc);
 		lblLongDescription.setHorizontalAlignment(SwingConstants.CENTER);
 		panelLongDesc.add(lblLongDescription);
 
 		panelTextAreaLongDesc = new JPanel();
 		panelTextAreaLongDesc.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-		sl_panelLongDesc.putConstraint(SpringLayout.NORTH, panelTextAreaLongDesc, 10, SpringLayout.SOUTH,
+		sl_panelLongDesc.putConstraint(Util.NORTH, panelTextAreaLongDesc, PADDING, Util.SOUTH,
 				lblLongDescription);
-		sl_panelLongDesc.putConstraint(SpringLayout.SOUTH, panelTextAreaLongDesc, -10, SpringLayout.SOUTH,
+		sl_panelLongDesc.putConstraint(Util.SOUTH, panelTextAreaLongDesc, -PADDING, Util.SOUTH,
 				panelLongDesc);
-		sl_panelLongDesc.putConstraint(SpringLayout.WEST, panelTextAreaLongDesc, 10, SpringLayout.WEST, panelLongDesc);
-		sl_panelLongDesc.putConstraint(SpringLayout.EAST, panelTextAreaLongDesc, -10, SpringLayout.EAST, panelLongDesc);
+		sl_panelLongDesc.putConstraint(Util.WEST, panelTextAreaLongDesc, PADDING, Util.WEST, panelLongDesc);
+		sl_panelLongDesc.putConstraint(Util.EAST, panelTextAreaLongDesc, -PADDING, Util.EAST, panelLongDesc);
 		panelLongDesc.add(panelTextAreaLongDesc);
 		panelTextAreaLongDesc.setLayout(new BorderLayout(0, 0));
 
@@ -979,8 +763,8 @@ public class TroubleTicketGUI
 		panelModifyTicket.setLayout(springLayout_1);
 
 		btnModify = new JButton("modify???");
-		springLayout_1.putConstraint(NORTH, btnModify, 184, NORTH, panelModifyTicket);
-		springLayout_1.putConstraint(WEST, btnModify, 112, WEST, panelModifyTicket);
+		springLayout_1.putConstraint(Util.NORTH, btnModify, 184, Util.NORTH, panelModifyTicket);
+		springLayout_1.putConstraint(Util.WEST, btnModify, 112, Util.WEST, panelModifyTicket);
 		panelModifyTicket.add(btnModify);
 		splitPane.setDividerLocation(DEFAULT_DIVIDER_WIDTH);
 
@@ -1169,7 +953,7 @@ public class TroubleTicketGUI
 					allFormsOK = false;
 					dateStartedChooser.setBorder(borderBad);
 					dateStartedChooser.requestFocus();
-					dateStartedChooser.getDateEditor().getUiComponent().setToolTipText(MUST_ENTER_DATE + " (" + PREFERRED_TIME_FORMAT + ")");
+					dateStartedChooser.getDateEditor().getUiComponent().setToolTipText(GUIC.MUST_ENTER_DATE + " (" + PREFERRED_TIME_FORMAT + ")");
 				}
 				
 				if(allFormsOK)
@@ -1190,7 +974,7 @@ public class TroubleTicketGUI
 		btnLogin.doClick(); // to setup the top text
 		lblLoginErrorMsg.setText(""); // empty login error message
 		
-		disableButtons(panelMenu,new String[] {BUTTON_LOGIN_NAME}); //disable all buttons until user logs in
+		Util.disableButtons(panelMenu,new String[] {BUTTON_LOGIN_NAME}); //disable all buttons until user logs in
 		setTooltips(panelMenu, new String[] {BUTTON_LOGIN_NAME}, "You must log in to be able to use this button.");
 		
 
