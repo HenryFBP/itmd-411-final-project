@@ -94,6 +94,18 @@ public class Dao
 		return ret;
 	}
 
+	
+	/***
+	 * Logs out a user. Sets all their fields to null.
+	 */
+	public void logout()
+	{
+		this.USER_TYPE = null;
+		this.USER_NAME = null;
+		this.USER_PASS = null;
+		this.USER_ID = null;
+	}
+	
 	/***
 	 * 
 	 * @param username

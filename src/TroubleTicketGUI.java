@@ -778,6 +778,27 @@ public class TroubleTicketGUI
 				modifyRightPane(panelLogin, e);
 			}
 		});
+		
+		
+		btnLogout.addActionListener(new ActionListener()
+		{
+			/***
+			 * 'Logout' button clocked.
+			 */
+
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				modifyRightPane(panelLogin, e);
+				Util.disableButtons(panelMenu, new String[]{BUTTON_LOGIN_NAME}); //disable all but log in
+
+				textFieldPassword.setText("");
+				textFieldUsername.setText("");
+				
+				dao.logout(); //log them out
+			}
+		});
+		
 
 		btnModifyTicket.addActionListener(new ActionListener()
 		{
@@ -866,7 +887,7 @@ public class TroubleTicketGUI
 			 */
 			public void actionPerformed(ActionEvent arg0)
 			{
-
+				
 			}
 		});
 
