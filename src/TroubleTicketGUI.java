@@ -76,81 +76,10 @@ public class TroubleTicketGUI
 
 
 	/***
-	 * This grabs the comparator ('>', '=', '!='), and the two operands (name, id,
-	 * date), ("henry", 1, 11/27/2017) and puts it into a query. It then uses the
-	 * results of that query to format the table.
-	 * 
-	 * @param s
+	 * Changes the right panel to show ONLY JPanel 'jp'.
+	 * @param jp  The JPanel to be shown
+	 * @param e  The actionEvent that tells us what button was clicked.
 	 */
-	public static void setupResultsView(String s)
-	{
-		
-	}
-
-	/***
-	 * Sets tooltips for all components inside of a container.
-	 * @param container				The container that has the components inside of it.
-	 * @param excludedComponents	Names of components to not get tooltips.
-	 * @param tooltip				The tooltip to be displayed.
-	 */
-	public static void setTooltips(JPanel container, String[] excludedComponents, String tooltip)
-	{
-		ArrayList<String> excludedComponentsAR = new ArrayList<>(Arrays.asList(excludedComponents));
-		
-		ArrayList<Component> components = Util.getComponentsFromJPanel(container);
-		SpringLayout tempSL = (SpringLayout) container.getLayout();
-		
-		for (int i = 0; i < components.size(); i++)
-		{
-			if (!excludedComponentsAR.contains(components.get(i).getName()))
-			{
-				try
-				{
-					((JComponent) components.get(i)).setToolTipText(tooltip); // may not be able to be cast to JComponent...
-				}
-				catch (Exception e)
-				{
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-	
-	
-	
-	/**
-	 * @param buttonContainer
-	 *            The container that has the buttons inside of it.
-	 * 
-	 *            With a bunch of buttons, they will be laid out using springLayout
-	 *            offset by 10px from eachother.
-	 */
-	public void formatButtons(JPanel buttonContainer)
-	{
-		// insert formatting for all buttons.
-		ArrayList<JButton> menuButtons = Util.getButtonsFromJPanel(buttonContainer);
-		SpringLayout tempSL = (SpringLayout) buttonContainer.getLayout();
-
-		for (int i = 0; i < menuButtons.size(); i++)
-		{
-			JButton tempButton = menuButtons.get(i);
-			Util.printf("menuButtons[%d] = %s\n", i, tempButton);
-
-			tempSL.putConstraint(Util.WEST, tempButton, PADDING, Util.WEST, buttonContainer);
-			tempSL.putConstraint(Util.EAST, tempButton, -PADDING, Util.EAST, buttonContainer);
-
-			if (i == 0) // first button aligns vertically w/ container
-			{
-				tempSL.putConstraint(Util.NORTH, tempButton, PADDING, Util.NORTH, buttonContainer);
-			}
-			else // all others align with south side of prev. button
-			{
-				JButton prevButton = menuButtons.get(i - 1);
-				tempSL.putConstraint(Util.NORTH, tempButton, PADDING, Util.SOUTH, prevButton);
-			}
-		}
-	}
-
 	public void modifyRightPane(JPanel jp, ActionEvent e)
 	{
 		JPanel panel = panelModifyTicket;
@@ -191,8 +120,8 @@ public class TroubleTicketGUI
 		if (result == Dao.NORMAL_USER || result == Dao.ADMINISTRATOR)
 		{// log them in!
 			
-			setTooltips(panelMenu,new String[] {}, ""); //reset tooltips
-			Util.enableButtons(panelMenu);					//enable all buttons
+			Util.setTooltips(panelMenu,new String[] {}, ""); //reset tooltips
+			Util.enableButtons(panelMenu);					 //enable all buttons
 			
 			
 			if (result == Dao.NORMAL_USER)
@@ -989,14 +918,16 @@ public class TroubleTicketGUI
 				}
 			}
 		});
+		
 
-		formatButtons(panelMenu);
+
+		Util.formatButtons(panelMenu);
 
 		btnLogin.doClick(); // to setup the top text
 		lblLoginErrorMsg.setText(""); // empty login error message
 		
 		Util.disableButtons(panelMenu,new String[] {BUTTON_LOGIN_NAME}); //disable all buttons until user logs in
-		setTooltips(panelMenu, new String[] {BUTTON_LOGIN_NAME}, "You must log in to be able to use this button.");
+		Util.setTooltips(panelMenu, new String[] {BUTTON_LOGIN_NAME}, "You must log in to be able to use this button.");
 		
 
 

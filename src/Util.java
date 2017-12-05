@@ -14,6 +14,7 @@ import java.util.Arrays;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
@@ -294,6 +295,11 @@ public class Util
 		}
 	}
 	
+	/***
+	 *  Disable all buttons EXCEPT those specified in the excludedButtons list.
+	 * @param buttonContainer The container of buttons.
+	 * @param excludedButtons Button names to not be disabled.
+	 */
 	public static void disableButtons(JPanel buttonContainer, String[] excludedButtons)
 	{
 		disableButtons(buttonContainer, excludedButtons, false);
@@ -437,5 +443,86 @@ public class Util
 		}
 		return ret;
 	}
+	
+
+
+	/***
+	 * This grabs the comparator ('>', '=', '!='), and the two operands (name, id,
+	 * date), ("henry", 1, 11/27/2017) and puts it into a query. It then uses the
+	 * results of that query to format the table.
+	 * 
+	 * @param s
+	 */
+	public static void setupResultsView(String s)
+	{
+		
+	}
+
+	/***
+	 * Sets tooltips for all components inside of a container.
+	 * @param container				The container that has the components inside of it.
+	 * @param excludedComponents	Names of components to not get tooltips.
+	 * @param tooltip				The tooltip to be displayed.
+	 */
+	public static void setTooltips(JPanel container, String[] excludedComponents, String tooltip)
+	{
+		ArrayList<String> excludedComponentsAR = new ArrayList<>(Arrays.asList(excludedComponents));
+		
+		ArrayList<Component> components = Util.getComponentsFromJPanel(container);
+		SpringLayout tempSL = (SpringLayout) container.getLayout();
+		
+		for (int i = 0; i < components.size(); i++)
+		{
+			if (!excludedComponentsAR.contains(components.get(i).getName()))
+			{
+				try
+				{
+					((JComponent) components.get(i)).setToolTipText(tooltip); // may not be able to be cast to JComponent...
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	
+	
+	/**
+	 * @param buttonContainer
+	 *            The container that has the buttons inside of it.
+	 * 
+	 *            With a bunch of buttons, they will be laid out using springLayout
+	 *            offset by 10px from eachother.
+	 */
+	public static void formatButtons(JPanel buttonContainer)
+	{
+		// insert formatting for all buttons.
+		ArrayList<JButton> menuButtons = Util.getButtonsFromJPanel(buttonContainer);
+		SpringLayout tempSL = (SpringLayout) buttonContainer.getLayout();
+
+		for (int i = 0; i < menuButtons.size(); i++)
+		{
+			JButton tempButton = menuButtons.get(i);
+			Util.printf("menuButtons[%d] = %s\n", i, tempButton);
+
+			tempSL.putConstraint(Util.WEST, tempButton, 10, Util.WEST, buttonContainer);
+			tempSL.putConstraint(Util.EAST, tempButton, -10, Util.EAST, buttonContainer);
+
+			if (i == 0) // first button aligns vertically w/ container
+			{
+				tempSL.putConstraint(Util.NORTH, tempButton, 10, Util.NORTH, buttonContainer);
+			}
+			else // all others align with south side of prev. button
+			{
+				JButton prevButton = menuButtons.get(i - 1);
+				tempSL.putConstraint(Util.NORTH, tempButton, 10, Util.SOUTH, prevButton);
+			}
+		}
+	}
+	
+	
+	
 	
 }
