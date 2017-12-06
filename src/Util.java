@@ -1,9 +1,12 @@
 import java.awt.Component;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -260,6 +263,22 @@ public class Util
 		}
 		catch (FileNotFoundException e)
 		{
+			printf("File '%s' not found. Creating it with default login info...", path);
+
+			try
+			{
+				BufferedWriter bw = new BufferedWriter(new FileWriter(new File(path)));
+				
+				bw.write(SQLC.DEFAULT_LOGIN_DATA+"");
+				
+				bw.close();
+			}
+			catch (IOException e1)
+			{
+				e1.printStackTrace();
+			}
+			
+			
 			e.printStackTrace();
 		}
 		catch (IOException e)

@@ -4,6 +4,9 @@
  */
 public enum SQLC
 {
+	DEFAULT_LOGIN_DATA ("jdbc:mysql://localhost:3306/testdb,root,password\r\n"
+					  + "jdbc:mysql://goggle.ru/bestdb:6666,toor,root\r\n"),
+	
 	TABLE_PREFIX			("h1_j1_"),
 	SQL_STR_TO_DATE_FORMAT	("%Y-%m-%d %H:%i:%s"),
 	SQL_DATE_FORMAT			("yyyy-MM-dd hh:mm:ss"),
