@@ -6,3 +6,5 @@
 login.txt
 .*
 !.gitignore
+.classpath
+.project
