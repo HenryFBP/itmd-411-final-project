@@ -187,6 +187,10 @@ public class Dao
 
 	}
 
+	/***
+	 * Returns a list of categories from the {@link SQLC.TABLE_CATEGORIES} table.
+	 * @return
+	 */
 	public ArrayList<String> getCategories()
 	{
 		ArrayList<String> ret = new ArrayList<>();
@@ -355,7 +359,7 @@ public class Dao
 		
 		try
 		{
-			Statement s = c.createStatement();
+			Statement s = this.c.createStatement();
 			
 			query = String.format("INSERT INTO %s (%s, %s, %s, %s, %s, %s) ",
 					SQLC.TABLE_TICKETS, SQLC.USER_ID_COLUMN_NAME, SQLC.SHORT_DESC_COLUMN_NAME,
@@ -371,6 +375,33 @@ public class Dao
 		catch (SQLException e)
 		{
 			e.printStackTrace();
+		}
+	}
+	
+	
+	/***
+	 * Deletes a ticket by its ID.
+	 * @return Whether or not deletion was successful.
+	 */
+	public Boolean deleteTicket(int id)
+	{
+		Statement s;
+		
+		try
+		{
+			s = this.c.createStatement();
+			
+			s.execute(String.format("DELETE FROM %s WHERE %s = %d",
+					SQLC.TABLE_TICKETS,SQLC.TICKET_ID_COLUMN_NAME,id));
+			return true;
+		}
+		catch (SQLException e)
+		{
+			Util.printf("Failed to delete ticket of ID '%d'!",id);
+			System.out.println(e.getMessage());
+			System.out.println(e.getSQLState());
+			e.printStackTrace();
+			return false;
 		}
 	}
 }

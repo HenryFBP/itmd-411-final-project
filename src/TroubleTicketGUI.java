@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -21,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Vector;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -28,8 +30,10 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
@@ -37,13 +41,19 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.table.DefaultTableModel;
 
 import com.toedter.calendar.JDateChooser;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
-public class TroubleTicketGUI
+public class TroubleTicketGUI extends JFrame
 {
 	public static int DEFAULT_LOGIN_MODE = 1; // Which entry should be used? If this is too large, the last one will be
 												// used.
@@ -167,7 +177,7 @@ public class TroubleTicketGUI
 	private JPanel panelNewTicket;
 	private JPanel panelSearch;
 	private JPanel panelModifyTicket;
-	private JButton btnModify;
+	private JButton btnSubmitChanges;
 	private JPanel panelRight;
 	private SpringLayout sl_panelRight;
 	private SpringLayout sl_panelLogin;
@@ -176,7 +186,7 @@ public class TroubleTicketGUI
 	private JPanel panelRightTop;
 	private JPanel panelPassword;
 	private JLabel lblPassword;
-	private JButton btnSubmitNewTicket;
+	private JButton btnNTSubmitNewTicket;
 	private JButton btnSearchThroughRecords;
 	private SpringLayout springLayout_1;
 	private JPanel panelStatus;
@@ -189,21 +199,21 @@ public class TroubleTicketGUI
 	private JPanel panelLoginErrorMsg;
 	private SpringLayout springLayout;
 	private SpringLayout sl_panelMenu;
-	private JPanel panelShortDesc;
+	private JPanel panelNTShortDesc;
 	private JTextArea textAreaShortDesc;
 	private JPanel panelTextAreaShortDesc;
-	private SpringLayout sl_panelShortDesc;
+	private SpringLayout sl_panelNTShortDesc;
 	private JLabel lblShortDesc;
-	private JPanel panelCategory;
-	private JPanel panelButtonSubmitNewTicket;
+	private JPanel panelNTCategory;
+	private JPanel panelNTButtonSubmitNewTicket;
 	private JPanel panelTextAreaLongDesc;
 	private JTextArea textAreaLongDesc;
 	private JPanel panelUsernameMiddle;
 	private JTextField textFieldUsername;
 	private JPanel panelPasswordMiddle;
 	private JScrollPane scrollPaneLongDesc;
-	private SpringLayout sl_panelLongDesc;
-	private JPanel panelLongDesc;
+	private SpringLayout sl_panelNTLongDesc;
+	private JPanel panelNTLongDesc;
 	private JComboBox comboBoxCategory;
 	private SpringLayout sl_panelUsername;
 	private JLabel lblLongDescription;
@@ -222,13 +232,14 @@ public class TroubleTicketGUI
 	private JLabel labelSeverity;
 	private JComboBox<String> comboBoxSeverity;
 	private JPanel panelSearchBottom;
-	private JPanel panelSeverity;
-	private JPanel panelDateStarted;
+	private JPanel panelNTSeverity;
+	private JPanel panelNTDateStarted;
 	private JLabel labelDateStarted;
 	private JDateChooser dateStartedChooser;
-	private JPanel panelDateEnded;
+	private JPanel panelNTDateEnded;
 	private JLabel labelDateEnded;
 	private JDateChooser dateEndedChooser;
+	private JTextField textField_1;
 
 	/**
 	 * Launch the application.
@@ -464,152 +475,152 @@ public class TroubleTicketGUI
 		gbl_panelNewTicket.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
 		panelNewTicket.setLayout(gbl_panelNewTicket);
 
-		panelShortDesc = new JPanel();
-		GridBagConstraints gbc_panelShortDesc = new GridBagConstraints();
-		gbc_panelShortDesc.insets = new Insets(0, 0, 5, 5);
-		gbc_panelShortDesc.fill = GridBagConstraints.BOTH;
-		gbc_panelShortDesc.gridheight = 2;
-		gbc_panelShortDesc.gridx = 1;
-		gbc_panelShortDesc.gridy = 0;
-		panelNewTicket.add(panelShortDesc, gbc_panelShortDesc);
-		sl_panelShortDesc = new SpringLayout();
-		panelShortDesc.setLayout(sl_panelShortDesc);
+		panelNTShortDesc = new JPanel();
+		GridBagConstraints gbc_panelNTShortDesc = new GridBagConstraints();
+		gbc_panelNTShortDesc.insets = new Insets(0, 0, 5, 5);
+		gbc_panelNTShortDesc.fill = GridBagConstraints.BOTH;
+		gbc_panelNTShortDesc.gridheight = 2;
+		gbc_panelNTShortDesc.gridx = 1;
+		gbc_panelNTShortDesc.gridy = 0;
+		panelNewTicket.add(panelNTShortDesc, gbc_panelNTShortDesc);
+		sl_panelNTShortDesc = new SpringLayout();
+		panelNTShortDesc.setLayout(sl_panelNTShortDesc);
 
 		lblShortDesc = new JLabel("Short description / name");
-		sl_panelShortDesc.putConstraint(Util.NORTH, lblShortDesc, PADDING, Util.NORTH, panelShortDesc);
+		sl_panelNTShortDesc.putConstraint(Util.NORTH, lblShortDesc, PADDING, Util.NORTH, panelNTShortDesc);
 		lblShortDesc.setHorizontalAlignment(SwingConstants.CENTER);
-		sl_panelShortDesc.putConstraint(Util.WEST, lblShortDesc, PADDING, Util.WEST, panelShortDesc);
-		sl_panelShortDesc.putConstraint(Util.EAST, lblShortDesc, -PADDING, Util.EAST, panelShortDesc);
-		panelShortDesc.add(lblShortDesc);
+		sl_panelNTShortDesc.putConstraint(Util.WEST, lblShortDesc, PADDING, Util.WEST, panelNTShortDesc);
+		sl_panelNTShortDesc.putConstraint(Util.EAST, lblShortDesc, -PADDING, Util.EAST, panelNTShortDesc);
+		panelNTShortDesc.add(lblShortDesc);
 
 		panelTextAreaShortDesc = new JPanel();
-		sl_panelShortDesc.putConstraint(Util.NORTH, panelTextAreaShortDesc, PADDING, Util.SOUTH,lblShortDesc);
-		sl_panelShortDesc.putConstraint(Util.WEST, panelTextAreaShortDesc, PADDING, Util.WEST,panelShortDesc);
-		sl_panelShortDesc.putConstraint(Util.EAST, panelTextAreaShortDesc, -PADDING, Util.EAST,panelShortDesc);
+		sl_panelNTShortDesc.putConstraint(Util.NORTH, panelTextAreaShortDesc, PADDING, Util.SOUTH,lblShortDesc);
+		sl_panelNTShortDesc.putConstraint(Util.WEST, panelTextAreaShortDesc, PADDING, Util.WEST,panelNTShortDesc);
+		sl_panelNTShortDesc.putConstraint(Util.EAST, panelTextAreaShortDesc, -PADDING, Util.EAST,panelNTShortDesc);
 		panelTextAreaShortDesc.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-		sl_panelShortDesc.putConstraint(Util.SOUTH, panelTextAreaShortDesc, -PADDING, Util.SOUTH,panelShortDesc);
-		panelShortDesc.add(panelTextAreaShortDesc);
+		sl_panelNTShortDesc.putConstraint(Util.SOUTH, panelTextAreaShortDesc, -PADDING, Util.SOUTH,panelNTShortDesc);
+		panelNTShortDesc.add(panelTextAreaShortDesc);
 		panelTextAreaShortDesc.setLayout(new BorderLayout(0, 0));
 
 		textAreaShortDesc = new JTextArea();
 		panelTextAreaShortDesc.add(textAreaShortDesc);
-		sl_panelShortDesc.putConstraint(Util.NORTH, textAreaShortDesc, 6, Util.SOUTH, lblShortDesc);
-		sl_panelShortDesc.putConstraint(Util.WEST, textAreaShortDesc, PADDING, Util.WEST, panelShortDesc);
-		sl_panelShortDesc.putConstraint(Util.SOUTH, textAreaShortDesc, -PADDING, Util.SOUTH, panelShortDesc);
-		sl_panelShortDesc.putConstraint(Util.EAST, textAreaShortDesc, -PADDING, Util.EAST, panelShortDesc);
+		sl_panelNTShortDesc.putConstraint(Util.NORTH, textAreaShortDesc, 6, Util.SOUTH, lblShortDesc);
+		sl_panelNTShortDesc.putConstraint(Util.WEST, textAreaShortDesc, PADDING, Util.WEST, panelNTShortDesc);
+		sl_panelNTShortDesc.putConstraint(Util.SOUTH, textAreaShortDesc, -PADDING, Util.SOUTH, panelNTShortDesc);
+		sl_panelNTShortDesc.putConstraint(Util.EAST, textAreaShortDesc, -PADDING, Util.EAST, panelNTShortDesc);
 		textAreaShortDesc.setColumns(10);
 
-		panelCategory = new JPanel();
-		GridBagConstraints gbc_panelCategory = new GridBagConstraints();
-		gbc_panelCategory.gridwidth = 2;
-		gbc_panelCategory.fill = GridBagConstraints.BOTH;
-		gbc_panelCategory.insets = new Insets(0, 0, 5, 5);
-		gbc_panelCategory.gridx = 2;
-		gbc_panelCategory.gridy = 0;
-		panelNewTicket.add(panelCategory, gbc_panelCategory);
-		panelCategory.setLayout(new BorderLayout(0, 0));
+		panelNTCategory = new JPanel();
+		GridBagConstraints gbc_panelNTCategory = new GridBagConstraints();
+		gbc_panelNTCategory.gridwidth = 2;
+		gbc_panelNTCategory.fill = GridBagConstraints.BOTH;
+		gbc_panelNTCategory.insets = new Insets(0, 0, 5, 5);
+		gbc_panelNTCategory.gridx = 2;
+		gbc_panelNTCategory.gridy = 0;
+		panelNewTicket.add(panelNTCategory, gbc_panelNTCategory);
+		panelNTCategory.setLayout(new BorderLayout(0, 0));
 
 		comboBoxCategory = new JComboBox<Object>();
 		comboBoxCategory.setFont(new Font("Dialog", Font.BOLD, 15));
 		comboBoxCategory.setModel(new DefaultComboBoxModel(
 				new String[] { "THESE", "SHOULD", "BE", "AUTO", "REPLACED", "FROM", "THE", "CATEGORIES", "TABLE" }));
-		panelCategory.add(comboBoxCategory);
+		panelNTCategory.add(comboBoxCategory);
 
 		labelCategory = new JLabel("Category");
 		labelCategory.setHorizontalAlignment(SwingConstants.CENTER);
-		panelCategory.add(labelCategory, BorderLayout.NORTH);
+		panelNTCategory.add(labelCategory, BorderLayout.NORTH);
 
 		Util.setupCategories(comboBoxCategory,this.dao); // grab list of possible categories
 											// from server's category table
 
-		panelDateStarted = new JPanel();
+		panelNTDateStarted = new JPanel();
 		GridBagConstraints gbc_panelDateStarted = new GridBagConstraints();
 		gbc_panelDateStarted.gridwidth = 2;
 		gbc_panelDateStarted.anchor = GridBagConstraints.NORTHWEST;
 		gbc_panelDateStarted.insets = new Insets(5, 5, 5, 5);
 		gbc_panelDateStarted.gridx = 4;
 		gbc_panelDateStarted.gridy = 0;
-		panelNewTicket.add(panelDateStarted, gbc_panelDateStarted);
-		panelDateStarted.setLayout(new BorderLayout(0, 0));
+		panelNewTicket.add(panelNTDateStarted, gbc_panelDateStarted);
+		panelNTDateStarted.setLayout(new BorderLayout(0, 0));
 
 		dateStartedChooser = new JDateChooser();
 		dateStartedChooser.setDateFormatString(PREFERRED_TIME_FORMAT);
-		panelDateStarted.add(dateStartedChooser);
+		panelNTDateStarted.add(dateStartedChooser);
 
 		labelDateStarted = new JLabel("Date started");
 		labelDateStarted.setHorizontalAlignment(SwingConstants.CENTER);
-		panelDateStarted.add(labelDateStarted, BorderLayout.NORTH);
+		panelNTDateStarted.add(labelDateStarted, BorderLayout.NORTH);
 
-		panelSeverity = new JPanel();
+		panelNTSeverity = new JPanel();
 		GridBagConstraints gbc_panelSeverity = new GridBagConstraints();
 		gbc_panelSeverity.fill = GridBagConstraints.HORIZONTAL;
 		gbc_panelSeverity.gridwidth = 2;
 		gbc_panelSeverity.insets = new Insets(0, 0, 5, 5);
 		gbc_panelSeverity.gridx = 2;
 		gbc_panelSeverity.gridy = 1;
-		panelNewTicket.add(panelSeverity, gbc_panelSeverity);
-		panelSeverity.setLayout(new BorderLayout(0, 0));
+		panelNewTicket.add(panelNTSeverity, gbc_panelSeverity);
+		panelNTSeverity.setLayout(new BorderLayout(0, 0));
 
 		labelSeverity = new JLabel("Severity");
 		labelSeverity.setHorizontalAlignment(SwingConstants.CENTER);
-		panelSeverity.add(labelSeverity, BorderLayout.NORTH);
+		panelNTSeverity.add(labelSeverity, BorderLayout.NORTH);
 
 		comboBoxSeverity = new JComboBox<String>();
 		comboBoxSeverity.setModel(new DefaultComboBoxModel(new String[] { "THESE", "SHOULD", "BE", "POPULATED", "WITH",
 				"ENTRIES", "FROM", "THE", "SEVERITY", "TABLE" }));
 		comboBoxSeverity.setFont(new Font("Dialog", Font.BOLD, 15));
-		panelSeverity.add(comboBoxSeverity, BorderLayout.CENTER);
+		panelNTSeverity.add(comboBoxSeverity, BorderLayout.CENTER);
 
 
 		Util.setupSeverities(comboBoxSeverity, this.dao); 	// grab list of possible severities
 															// from server's severity table
 
-		panelDateEnded = new JPanel();
-		GridBagConstraints gbc_panelDateEnded = new GridBagConstraints();
-		gbc_panelDateEnded.anchor = GridBagConstraints.WEST;
-		gbc_panelDateEnded.gridwidth = 2;
-		gbc_panelDateEnded.insets = new Insets(5, 5, 5, 5);
-		gbc_panelDateEnded.gridx = 4;
-		gbc_panelDateEnded.gridy = 1;
-		panelNewTicket.add(panelDateEnded, gbc_panelDateEnded);
-		panelDateEnded.setLayout(new BorderLayout(0, 0));
+		panelNTDateEnded = new JPanel();
+		GridBagConstraints gbc_panelNTDateEnded = new GridBagConstraints();
+		gbc_panelNTDateEnded.anchor = GridBagConstraints.WEST;
+		gbc_panelNTDateEnded.gridwidth = 2;
+		gbc_panelNTDateEnded.insets = new Insets(5, 5, 5, 5);
+		gbc_panelNTDateEnded.gridx = 4;
+		gbc_panelNTDateEnded.gridy = 1;
+		panelNewTicket.add(panelNTDateEnded, gbc_panelNTDateEnded);
+		panelNTDateEnded.setLayout(new BorderLayout(0, 0));
 
 		dateEndedChooser = new JDateChooser();
 		dateEndedChooser.setDateFormatString("MMM d, yyyy, hh:mm:ss aa");
-		panelDateEnded.add(dateEndedChooser, BorderLayout.CENTER);
+		panelNTDateEnded.add(dateEndedChooser, BorderLayout.CENTER);
 
 		labelDateEnded = new JLabel("Date ended");
 		labelDateEnded.setHorizontalAlignment(SwingConstants.CENTER);
-		panelDateEnded.add(labelDateEnded, BorderLayout.NORTH);
+		panelNTDateEnded.add(labelDateEnded, BorderLayout.NORTH);
 
-		panelLongDesc = new JPanel();
-		GridBagConstraints gbc_panelLongDesc = new GridBagConstraints();
-		gbc_panelLongDesc.gridheight = 3;
-		gbc_panelLongDesc.fill = GridBagConstraints.BOTH;
-		gbc_panelLongDesc.insets = new Insets(0, 0, 5, 5);
-		gbc_panelLongDesc.gridwidth = 6;
-		gbc_panelLongDesc.gridx = 1;
-		gbc_panelLongDesc.gridy = 2;
-		panelNewTicket.add(panelLongDesc, gbc_panelLongDesc);
-		sl_panelLongDesc = new SpringLayout();
-		panelLongDesc.setLayout(sl_panelLongDesc);
+		panelNTLongDesc = new JPanel();
+		GridBagConstraints gbc_panelNTLongDesc = new GridBagConstraints();
+		gbc_panelNTLongDesc.gridheight = 3;
+		gbc_panelNTLongDesc.fill = GridBagConstraints.BOTH;
+		gbc_panelNTLongDesc.insets = new Insets(0, 0, 5, 5);
+		gbc_panelNTLongDesc.gridwidth = 6;
+		gbc_panelNTLongDesc.gridx = 1;
+		gbc_panelNTLongDesc.gridy = 2;
+		panelNewTicket.add(panelNTLongDesc, gbc_panelNTLongDesc);
+		sl_panelNTLongDesc = new SpringLayout();
+		panelNTLongDesc.setLayout(sl_panelNTLongDesc);
 
 		lblLongDescription = new JLabel("Long description");
-		sl_panelLongDesc.putConstraint(Util.NORTH, lblLongDescription, 0, Util.NORTH, panelLongDesc);
-		sl_panelLongDesc.putConstraint(Util.WEST, lblLongDescription, PADDING, Util.WEST, panelLongDesc);
-		sl_panelLongDesc.putConstraint(Util.EAST, lblLongDescription, -PADDING, Util.EAST, panelLongDesc);
+		sl_panelNTLongDesc.putConstraint(Util.NORTH, lblLongDescription, 0, Util.NORTH, panelNTLongDesc);
+		sl_panelNTLongDesc.putConstraint(Util.WEST, lblLongDescription, PADDING, Util.WEST, panelNTLongDesc);
+		sl_panelNTLongDesc.putConstraint(Util.EAST, lblLongDescription, -PADDING, Util.EAST, panelNTLongDesc);
 		lblLongDescription.setHorizontalAlignment(SwingConstants.CENTER);
-		panelLongDesc.add(lblLongDescription);
+		panelNTLongDesc.add(lblLongDescription);
 
 		panelTextAreaLongDesc = new JPanel();
 		panelTextAreaLongDesc.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-		sl_panelLongDesc.putConstraint(Util.NORTH, panelTextAreaLongDesc, PADDING, Util.SOUTH,
+		sl_panelNTLongDesc.putConstraint(Util.NORTH, panelTextAreaLongDesc, PADDING, Util.SOUTH,
 				lblLongDescription);
-		sl_panelLongDesc.putConstraint(Util.SOUTH, panelTextAreaLongDesc, -PADDING, Util.SOUTH,
-				panelLongDesc);
-		sl_panelLongDesc.putConstraint(Util.WEST, panelTextAreaLongDesc, PADDING, Util.WEST, panelLongDesc);
-		sl_panelLongDesc.putConstraint(Util.EAST, panelTextAreaLongDesc, -PADDING, Util.EAST, panelLongDesc);
-		panelLongDesc.add(panelTextAreaLongDesc);
+		sl_panelNTLongDesc.putConstraint(Util.SOUTH, panelTextAreaLongDesc, -PADDING, Util.SOUTH,
+				panelNTLongDesc);
+		sl_panelNTLongDesc.putConstraint(Util.WEST, panelTextAreaLongDesc, PADDING, Util.WEST, panelNTLongDesc);
+		sl_panelNTLongDesc.putConstraint(Util.EAST, panelTextAreaLongDesc, -PADDING, Util.EAST, panelNTLongDesc);
+		panelNTLongDesc.add(panelTextAreaLongDesc);
 		panelTextAreaLongDesc.setLayout(new BorderLayout(0, 0));
 
 		scrollPaneLongDesc = new JScrollPane();
@@ -619,25 +630,25 @@ public class TroubleTicketGUI
 		scrollPaneLongDesc.setViewportView(textAreaLongDesc);
 		textAreaLongDesc.setColumns(10);
 
-		btnSubmitNewTicket = new JButton("Submit new ticket");
-		GridBagConstraints gbc_btnSubmitNewTicket = new GridBagConstraints();
-		gbc_btnSubmitNewTicket.fill = GridBagConstraints.BOTH;
-		gbc_btnSubmitNewTicket.gridwidth = 2;
-		gbc_btnSubmitNewTicket.insets = new Insets(0, 0, 5, 5);
-		gbc_btnSubmitNewTicket.gridx = 2;
-		gbc_btnSubmitNewTicket.gridy = 5;
-		panelNewTicket.add(btnSubmitNewTicket, gbc_btnSubmitNewTicket);
-		btnSubmitNewTicket.setName("btnNewTiket");
+		btnNTSubmitNewTicket = new JButton("Submit new ticket");
+		GridBagConstraints gbc_btnNTSubmitNewTicket = new GridBagConstraints();
+		gbc_btnNTSubmitNewTicket.fill = GridBagConstraints.BOTH;
+		gbc_btnNTSubmitNewTicket.gridwidth = 2;
+		gbc_btnNTSubmitNewTicket.insets = new Insets(0, 0, 5, 5);
+		gbc_btnNTSubmitNewTicket.gridx = 2;
+		gbc_btnNTSubmitNewTicket.gridy = 5;
+		panelNewTicket.add(btnNTSubmitNewTicket, gbc_btnNTSubmitNewTicket);
+		btnNTSubmitNewTicket.setName("btnNewTiket");
 
-		panelButtonSubmitNewTicket = new JPanel();
-		GridBagConstraints gbc_panelButtonSubmitNewTicket = new GridBagConstraints();
-		gbc_panelButtonSubmitNewTicket.insets = new Insets(0, 0, 5, 5);
-		gbc_panelButtonSubmitNewTicket.fill = GridBagConstraints.BOTH;
-		gbc_panelButtonSubmitNewTicket.gridwidth = 2;
-		gbc_panelButtonSubmitNewTicket.gridx = 2;
-		gbc_panelButtonSubmitNewTicket.gridy = 6;
-		panelNewTicket.add(panelButtonSubmitNewTicket, gbc_panelButtonSubmitNewTicket);
-		panelButtonSubmitNewTicket.setLayout(new BorderLayout(0, 0));
+		panelNTButtonSubmitNewTicket = new JPanel();
+		GridBagConstraints gbc_panelNTButtonSubmitNewTicket = new GridBagConstraints();
+		gbc_panelNTButtonSubmitNewTicket.insets = new Insets(0, 0, 5, 5);
+		gbc_panelNTButtonSubmitNewTicket.fill = GridBagConstraints.BOTH;
+		gbc_panelNTButtonSubmitNewTicket.gridwidth = 2;
+		gbc_panelNTButtonSubmitNewTicket.gridx = 2;
+		gbc_panelNTButtonSubmitNewTicket.gridy = 6;
+		panelNewTicket.add(panelNTButtonSubmitNewTicket, gbc_panelNTButtonSubmitNewTicket);
+		panelNTButtonSubmitNewTicket.setLayout(new BorderLayout(0, 0));
 		panelSearch.setLayout(new BorderLayout(0, 0));
 
 		splitPaneSearch = new JSplitPane();
@@ -677,13 +688,24 @@ public class TroubleTicketGUI
 		panelSearchBottom.add(panelSearchResultsTop, BorderLayout.NORTH);
 
 		JScrollPane scrollPaneResults = new JScrollPane();
+		
+		tableResults = new JTable();
+		tableResults.setModel(new DefaultTableModel(new Object[][] {}, new String[] { "hi", "please", "replace", "me" }));
+		scrollPaneResults.setViewportView(tableResults);
+		
+		JPopupMenu popupMenuResults = new JPopupMenu();
+		
+		JMenuItem deleteTicketMI = new JMenuItem("Delete -----------------");
+		
+		JMenuItem modifyTicketMI = new JMenuItem("Modify -----------------"); //TODO why can't I resize these?
+		
+		popupMenuResults.add(deleteTicketMI,0);
+		popupMenuResults.add(modifyTicketMI,1);
+		
+		tableResults.setComponentPopupMenu(popupMenuResults); //add popup menu for table
+
 		panelSearchBottom.add(scrollPaneResults, BorderLayout.CENTER);
 
-		tableResults = new JTable();
-		tableResults.setModel(new DefaultTableModel(new Object[][] {
-
-		}, new String[] { "hi", "please", "replace", "me" }));
-		scrollPaneResults.setViewportView(tableResults);
 
 		panelModifyTicket = new JPanel();
 		panelModifyTicket.setName("panelModifyTicket");
@@ -691,10 +713,25 @@ public class TroubleTicketGUI
 		springLayout_1 = new SpringLayout();
 		panelModifyTicket.setLayout(springLayout_1);
 
-		btnModify = new JButton("modify???");
-		springLayout_1.putConstraint(Util.NORTH, btnModify, 184, Util.NORTH, panelModifyTicket);
-		springLayout_1.putConstraint(Util.WEST, btnModify, 112, Util.WEST, panelModifyTicket);
-		panelModifyTicket.add(btnModify);
+		btnSubmitChanges = new JButton("Submit Changes");
+
+		springLayout_1.putConstraint(SpringLayout.WEST, btnSubmitChanges, 303, SpringLayout.WEST, panelModifyTicket);
+		springLayout_1.putConstraint(SpringLayout.SOUTH, btnSubmitChanges, -54, SpringLayout.SOUTH, panelModifyTicket);
+		panelModifyTicket.add(btnSubmitChanges);
+		
+		JPanel panel = new JPanel();
+		springLayout_1.putConstraint(SpringLayout.NORTH, panel, 10, SpringLayout.NORTH, panelModifyTicket);
+		springLayout_1.putConstraint(SpringLayout.WEST, panel, 10, SpringLayout.WEST, panelModifyTicket);
+		panelModifyTicket.add(panel);
+		
+		JLabel lblTicketId = new JLabel("Ticket ID");
+		panel.add(lblTicketId);
+		
+		textField_1 = new JTextField();
+		panel.add(textField_1);
+		springLayout_1.putConstraint(SpringLayout.NORTH, textField_1, 60, SpringLayout.NORTH, panelModifyTicket);
+		springLayout_1.putConstraint(SpringLayout.WEST, textField_1, 61, SpringLayout.WEST, panelModifyTicket);
+		textField_1.setColumns(10);
 		splitPane.setDividerLocation(DEFAULT_DIVIDER_WIDTH);
 
 		btnLogin.addActionListener(new ActionListener()
@@ -732,6 +769,96 @@ public class TroubleTicketGUI
 		});
 		
 
+		popupMenuResults.addPopupMenuListener(new PopupMenuListener()
+		{
+			/***
+			 * When the popup menu gets invoked.
+			 */
+			@Override
+			public void popupMenuWillBecomeVisible(PopupMenuEvent pme)
+			{
+
+				SwingUtilities.invokeLater(new Runnable()
+				{
+					/***
+					 * This part selects the table when you right-click.
+					 */
+					@Override
+					public void run()
+					{
+						JPopupMenu parentMenu = (JPopupMenu)pme.getSource();
+						
+						
+						int rowAtPoint = tableResults.rowAtPoint(SwingUtilities.convertPoint(popupMenuResults, new Point(0, 0), tableResults));
+						if (rowAtPoint > -1)
+						{
+							tableResults.setRowSelectionInterval(rowAtPoint, rowAtPoint);
+							Util.printf("Setting selection to row [%d] from rightclick.\n",rowAtPoint,rowAtPoint);
+							
+							DefaultTableModel dtm = (DefaultTableModel)tableResults.getModel(); //get data model
+							
+							int id = (int) Integer.parseInt((String)dtm.getValueAt(rowAtPoint, 0)); //get 0th item at nth row
+							
+							JMenuItem jmiDelete = ((JMenuItem)((JPopupMenu)pme.getSource()).getComponent(0)); //get menu item so we can make it say "Delete ticket id {}"
+							JMenuItem jmiModify = ((JMenuItem)((JPopupMenu)pme.getSource()).getComponent(1)); //get menu item so we can make it say "Modify ticket id {}"
+							
+							jmiDelete.setText(String.format("Delete Ticket ID '%d'",id));
+							jmiModify.setText(String.format("Modify Ticket ID '%d'",id));
+							
+							
+							//TODO why do I have to put a bunch of ------'s? Can't repaint the jpopupmenu to scale to width of text? hm..
+						} 
+					}
+				});
+			}
+			
+			@Override
+			public void popupMenuWillBecomeInvisible(PopupMenuEvent arg0)
+			{
+				// TODO Auto-generated method stub
+			}
+			
+			@Override
+			public void popupMenuCanceled(PopupMenuEvent arg0)
+			{
+				// TODO Auto-generated method stub
+			}
+		});
+		
+		deleteTicketMI.addActionListener(new AbstractAction()
+		{
+			private static final long serialVersionUID = 2440586029673540511L;
+
+			/***
+			 * Someone clicks "Delete ticket n" on our right-click menu.
+			 */
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0)
+			{
+				int row = Util.getSelectedPos(tableResults)[0];
+				
+				DefaultTableModel dtm = (DefaultTableModel) tableResults.getModel();
+				
+				int id = ((int) Integer.parseInt((String)dtm.getValueAt(row, 0)));
+				
+				System.out.printf("We should delete ticket with ID '%d'.\n",id);
+				
+				if(dao.deleteTicket(id)) //if successfully deleted
+				{
+					dtm.removeRow(row);
+				}
+				else
+				{
+					System.out.println("Failed to delete...:(");
+				}
+				
+				
+			}
+		});
+		
+		
+		
 		btnModifyTicket.addActionListener(new ActionListener()
 		{
 			/***
@@ -740,6 +867,20 @@ public class TroubleTicketGUI
 			public void actionPerformed(ActionEvent e)
 			{
 				modifyRightPane(panelModifyTicket, e, btnModifyTicket.getText());
+			}
+		});
+		
+		
+		
+		
+		
+		btnSubmitChanges.addActionListener(new ActionListener()
+		{
+			/***
+			 * 'Submit changes' button clicked.
+			 */
+			public void actionPerformed(ActionEvent e)
+			{
 			}
 		});
 
@@ -822,7 +963,34 @@ public class TroubleTicketGUI
 				
 			}
 		});
-
+		
+		
+//		tableResults.addMouseListener(new MouseAdapter()
+//		{
+//			/***
+//			 * Someone clicks on our results table!
+//			 */
+//			@Override
+//			public void mouseClicked(MouseEvent e)
+//			{
+//				System.out.println("any type of clik.");
+//				
+//				if(e.getButton() == MouseEvent.BUTTON3 || e.isPopupTrigger()) //if right click
+//				{
+//					System.out.println("WHOS RIGHT CLICKIN OUR TABLE???");
+//					
+//					tableResults.setComponentPopupMenu(popupMenuResults);
+//					
+//					popupMenuResults.dispatchEvent(e);
+//					
+//				}
+//				else
+//				{
+//					System.out.println("WHOS LEFT CLICKIN OUR TABLE???");
+//				}
+//			}
+//		});		
+		
 		btnNewTicket.addActionListener(new ActionListener()
 		{
 			/***
@@ -881,7 +1049,7 @@ public class TroubleTicketGUI
 			}
 		});		
 		
-		btnSubmitNewTicket.addActionListener(new ActionListener()
+		btnNTSubmitNewTicket.addActionListener(new ActionListener()
 		{
 			/***
 			 * Someone clicks "submit new ticket"
@@ -922,7 +1090,7 @@ public class TroubleTicketGUI
 			}
 		});
 		
-
+		
 
 		Util.formatButtons(panelMenu);
 

@@ -19,7 +19,9 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JTable;
 import javax.swing.SpringLayout;
+import javax.swing.table.DefaultTableModel;
 
 /***
  * 
@@ -541,6 +543,17 @@ public class Util
 		}
 	}
 	
+	/**
+	 * Return the int[] [row,col] of a JTable object.
+	 * @param t The JTable object.
+	 * @return The selected row and column.
+	 */
+	public static Integer[] getSelectedPos(JTable t)
+	{
+		Integer[] ret = {t.getSelectedRow(), t.getSelectedColumn()};
+		
+		return ret;
+	}
 	
 	
 	
