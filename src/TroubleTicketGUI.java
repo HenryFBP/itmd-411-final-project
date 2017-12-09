@@ -65,9 +65,10 @@ public class TroubleTicketGUI extends JFrame
 	private static final String BUTTON_LOGOUT_NAME = "btnLogout";
 	private static final String BUTTON_LOGIN_NAME = "btnLogin";
 	private static final String BUTTON_NEW_TICKET_NAME = "btnNewTicket";
+	private static final String BUTTON_NEW_TICKET_S = "New Ticket";
 	private static final String BUTTON_MODIFY_TICKET_NAME = "btnModifyTicket";
 	private static final String BUTTON_SEARCH_NAME = "btnSearch";
-	
+	private static final String BUTTON_S_SUBMIT_NEW_TICKET_S = "Submit new ticket";
 
 	
 	private static final String PANEL_RIGHT_CONTENT_NAME = "panelRightContent";
@@ -634,7 +635,7 @@ public class TroubleTicketGUI extends JFrame
 		scrollPaneLongDesc.setViewportView(textAreaLongDesc);
 		textAreaLongDesc.setColumns(10);
 
-		btnNTSubmitNewTicket = new JButton("Submit new ticket");
+		btnNTSubmitNewTicket = new JButton(BUTTON_S_SUBMIT_NEW_TICKET_S);
 		GridBagConstraints gbc_btnNTSubmitNewTicket = new GridBagConstraints();
 		gbc_btnNTSubmitNewTicket.fill = GridBagConstraints.BOTH;
 		gbc_btnNTSubmitNewTicket.gridwidth = 2;
@@ -1034,6 +1035,7 @@ public class TroubleTicketGUI extends JFrame
 			 */
 			public void actionPerformed(ActionEvent e)
 			{
+				((JButton)e.getSource()).setText(BUTTON_NEW_TICKET_S);
 				modifyRightPane(panelNewTicket, e, btnNewTicket.getText());
 			}
 		});
@@ -1099,6 +1101,7 @@ public class TroubleTicketGUI extends JFrame
 					
 					_ARE_MODIFYING_TICKET = false;
 					_PREV_TICKET_ID = -1;
+					btnNTSubmitNewTicket.setText(BUTTON_S_SUBMIT_NEW_TICKET_S);
 				}
 
 				dateStartedChooser.setBorder(borderDefault);
