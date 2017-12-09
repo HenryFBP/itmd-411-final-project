@@ -350,12 +350,16 @@ public class Dao
 	public void submitTicket(String name, String shortDesc, String longDesc, Integer category, Integer severity,
 			Date startDate, Date endDate)
 	{
+		name = Util.sanitize(name);
+		shortDesc = Util.sanitize(shortDesc);
+		longDesc = Util.sanitize(longDesc);
+		
 		
 		SimpleDateFormat sdf = new SimpleDateFormat(SQLC.SQL_DATE_FORMAT.s());
 		String query = "";
 
 		String sDate = sdf.format(startDate);
-		java.sql.Date ed = (java.sql.Date) endDate;
+		Date ed = endDate;
 		
 		try
 		{
@@ -363,7 +367,7 @@ public class Dao
 			
 			query = String.format("INSERT INTO %s (%s, %s, %s, %s, %s, %s) ",
 					SQLC.TABLE_TICKETS, SQLC.USER_ID_COLUMN_NAME, SQLC.SHORT_DESC_COLUMN_NAME,
-					SQLC.LONG_DESC_COLUMN_NAME, SQLC.CATEGORY_ID_COLUMN_NAME, SQLC.SEVERITY_COLUMN_NAME, SQLC.START_DATE_COLUMN_NAME);
+					SQLC.LONG_DESC_COLUMN_NAME, SQLC.CATEGORY_ID_COLUMN_NAME, SQLC.SEVERITY_ID_COLUMN_NAME, SQLC.START_DATE_COLUMN_NAME);
 								  
 			query += String.format("VALUES (%d, '%s', '%s', %d, %d, STR_TO_DATE('%s','%s'));",
 								  this.USER_ID,  shortDesc,   longDesc,   category,   severity,  sDate, SQLC.SQL_STR_TO_DATE_FORMAT.s());
@@ -404,4 +408,44 @@ public class Dao
 			return false;
 		}
 	}
+	
+	/***
+	 * @param tid The ticket id.
+	 * @return The resultSet associated with the ticket id.
+	 */
+	public ResultSet getTicketRS(int tid)
+	{
+		Statement s = null;
+		ResultSet rs = null;
+		
+		try
+		{
+			s = this.c.createStatement();
+			
+			rs = s.executeQuery(String.format("SELECT * FROM %s WHERE %s = %d",
+					SQLC.TABLE_TICKETS,SQLC.TICKET_ID_COLUMN_NAME,tid));
+			
+		}
+		catch (SQLException e)
+		{
+			Util.printf("Failed to get TID '%d",tid,SQLC.SHORT_DESC_COLUMN_NAME);
+			System.out.println(e.getMessage());
+			System.out.println(e.getSQLState());
+			e.printStackTrace();
+		}
+		return rs;
+	}
+	
+	/***
+	 * 
+	 * @param category A string representing a category.
+	 * @return An int that represents the category's CID in the database.
+	 */
+	public int categoryToInt(String category)
+	{
+		//TODO
+		return -1;
+	}
+
+
 }

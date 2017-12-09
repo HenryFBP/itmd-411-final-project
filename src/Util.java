@@ -556,5 +556,11 @@ public class Util
 	}
 	
 	
+	public static String sanitize(String s)
+	{
+		return s.replaceAll("['\"\\\\]", "\\\\$0");
+	}
+	
+	
 	
 }

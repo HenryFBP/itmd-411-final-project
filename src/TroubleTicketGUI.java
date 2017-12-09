@@ -1,7 +1,6 @@
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -12,22 +11,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.sql.Array;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Vector;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -49,12 +41,11 @@ import javax.swing.event.PopupMenuListener;
 import javax.swing.table.DefaultTableModel;
 
 import com.toedter.calendar.JDateChooser;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
 public class TroubleTicketGUI extends JFrame
 {
+
+	private static final long serialVersionUID = -5012247422436531433L;
 	public static int DEFAULT_LOGIN_MODE = 1; // Which entry should be used? If this is too large, the last one will be
 												// used.
 	public static final String LOGINS_FILE_PATH = "login.txt"; // Where are our logins and passwords stored? This is for
@@ -62,6 +53,9 @@ public class TroubleTicketGUI extends JFrame
 	
 	public static final int PADDING = 10;
 	public static final int DEFAULT_DIVIDER_WIDTH = 150;
+	
+	private Boolean _ARE_MODIFYING_TICKET = false;
+	private int _PREV_TICKET_ID	= -1;
 
 
 
@@ -92,8 +86,6 @@ public class TroubleTicketGUI extends JFrame
 	 */
 	public void modifyRightPane(JPanel jp, ActionEvent e, String panelName)
 	{
-		JPanel panel = panelModifyTicket;
-
 		CardLayout cl = (CardLayout) panelRightContent.getLayout();
 		JLabel label = lblCurrentPane;
 		JButton button = (JButton) e.getSource();
@@ -105,6 +97,18 @@ public class TroubleTicketGUI extends JFrame
 		label.setText(panelName);
 	}
 
+	public void modifyRightPane(JPanel jp, String panelName)
+	{
+		CardLayout cl = (CardLayout) panelRightContent.getLayout();
+		JLabel label = lblCurrentPane;
+
+		Util.println("Don't know what button someone clicked. Just changing right panel.");
+		
+		cl.show(panelRightContent, jp.getName());
+		label.setText(panelName);		
+	}
+	
+	
 	/***
 	 * Gets the info from the two login info fields. This is its own method so that
 	 * either pressing ENTER or clicking "Submit" will log you in.
@@ -825,6 +829,64 @@ public class TroubleTicketGUI extends JFrame
 			}
 		});
 		
+		modifyTicketMI.addActionListener(new AbstractAction()
+		{
+			/***
+			 * When someone clicks the "Modify ticket n" menu item.
+			 */
+			@Override
+			public void actionPerformed(ActionEvent arg0)
+			{
+				
+				int row = Util.getSelectedPos(tableResults)[0];
+				
+				DefaultTableModel dtm = (DefaultTableModel) tableResults.getModel();
+				
+				int id = ((int) Integer.parseInt((String)dtm.getValueAt(row, 0)));
+				
+				System.out.printf("Setting up 'new ticket' view for ticket ID '%d'\n",id);
+				
+				
+				ResultSet oneticket = dao.getTicketRS(id);
+				
+				
+				//first, fill in the field and change the name of the "submit" button;
+				try
+				{				
+					oneticket.next();
+					
+					textAreaShortDesc.setText(oneticket.getString(SQLC.SHORT_DESC_COLUMN_NAME.s()));
+					textAreaLongDesc.setText(oneticket.getString(SQLC.LONG_DESC_COLUMN_NAME.s()));
+					comboBoxCategory.setSelectedIndex(oneticket.getInt(SQLC.CATEGORY_ID_COLUMN_NAME.s()));
+					comboBoxSeverity.setSelectedIndex(oneticket.getInt(SQLC.SEVERITY_ID_COLUMN_NAME.s()));
+					dateStartedChooser.setDate(oneticket.getDate(SQLC.START_DATE_COLUMN_NAME.s()));
+					dateEndedChooser.setDate(oneticket.getDate(SQLC.END_DATE_COLUMN_NAME.s()));
+					
+					btnNTSubmitNewTicket.setText(btnNTSubmitNewTicket.getText() + " (modify)");
+					_ARE_MODIFYING_TICKET = true;
+					_PREV_TICKET_ID = id;
+					
+					
+
+				}
+				catch (SQLException e)
+				{
+					System.out.printf("Failed to populate 'new ticket' view with ticket ID %d's info!",id);
+					System.out.println(e.getSQLState());
+					System.out.println(e.getMessage());
+					e.printStackTrace();
+					
+				}
+
+				
+				
+				modifyRightPane(panelNewTicket, btnModifyTicket.getText()); //use our 'new ticket' GUI elt..why not?
+				
+				
+				
+			}
+		});
+		
 		deleteTicketMI.addActionListener(new AbstractAction()
 		{
 			private static final long serialVersionUID = 2440586029673540511L;
@@ -866,7 +928,8 @@ public class TroubleTicketGUI extends JFrame
 			 */
 			public void actionPerformed(ActionEvent e)
 			{
-				modifyRightPane(panelModifyTicket, e, btnModifyTicket.getText());
+				btnModifyTicket.setEnabled(false); //we're not gonna use it.
+				btnModifyTicket.setToolTipText("Use the right-click menu in the \"Search\" view to modify a ticket.");
 			}
 		});
 		
@@ -964,33 +1027,6 @@ public class TroubleTicketGUI extends JFrame
 			}
 		});
 		
-		
-//		tableResults.addMouseListener(new MouseAdapter()
-//		{
-//			/***
-//			 * Someone clicks on our results table!
-//			 */
-//			@Override
-//			public void mouseClicked(MouseEvent e)
-//			{
-//				System.out.println("any type of clik.");
-//				
-//				if(e.getButton() == MouseEvent.BUTTON3 || e.isPopupTrigger()) //if right click
-//				{
-//					System.out.println("WHOS RIGHT CLICKIN OUR TABLE???");
-//					
-//					tableResults.setComponentPopupMenu(popupMenuResults);
-//					
-//					popupMenuResults.dispatchEvent(e);
-//					
-//				}
-//				else
-//				{
-//					System.out.println("WHOS LEFT CLICKIN OUR TABLE???");
-//				}
-//			}
-//		});		
-		
 		btnNewTicket.addActionListener(new ActionListener()
 		{
 			/***
@@ -1056,6 +1092,14 @@ public class TroubleTicketGUI extends JFrame
 			 */
 			public void actionPerformed(ActionEvent arg0)
 			{
+				
+				if(_ARE_MODIFYING_TICKET) //to only delete if they submit
+				{
+					dao.deleteTicket(_PREV_TICKET_ID); //delete previous ticket
+					
+					_ARE_MODIFYING_TICKET = false;
+					_PREV_TICKET_ID = -1;
+				}
 
 				dateStartedChooser.setBorder(borderDefault);
 				dateEndedChooser.setBorder(borderDefault);  //reset borders
@@ -1086,6 +1130,15 @@ public class TroubleTicketGUI extends JFrame
 									(Integer)Integer.parseInt(((String)comboBoxSeverity.getSelectedItem()).substring(0, 1)),	//1st char of severity dropdown as Integer
 									dateStartedChooser.getDate(),
 									dateEndedChooser.getDate());
+					
+					// clear the text we just used.
+					textAreaShortDesc.setText("");
+					textAreaLongDesc.setText("");
+					comboBoxCategory.setSelectedIndex(0);
+					comboBoxSeverity.setSelectedIndex(0);
+					((JTextField)dateStartedChooser.getDateEditor().getUiComponent()).setText(""); //set text of date started to nothing
+					((JTextField)dateEndedChooser.getDateEditor().getUiComponent()).setText(""); //set text of date started to nothing
+					
 				}
 			}
 		});
@@ -1099,6 +1152,9 @@ public class TroubleTicketGUI extends JFrame
 		
 		Util.disableButtons(panelMenu,new String[] {BUTTON_LOGIN_NAME}); //disable all buttons until user logs in
 		Util.setTooltips(panelMenu, new String[] {BUTTON_LOGIN_NAME}, "You must log in to be able to use this button.");
+		
+		
+		
 		
 
 
