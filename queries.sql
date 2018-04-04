@@ -107,10 +107,8 @@ INSERT INTO
 	h1_j1_tickets (PID, shortDesc, longDesc, CID, SID, startDate)
 VALUES
 	(2, 'henry is asleep', 		'henry has fallen asleep at his desk', 1, 1, DATE(NOW())),
-	(1, 'bolo staring at me', 	'bolo is staring at me. I think he thinks i\'m asleep.', 1, 1, DATE(NOW()));
+	(1, 'bolo staring at me', 	'bolo is staring at me. I think he thinks im asleep.', 1, 1, DATE(NOW()));
 SELECT * FROM h1_j1_tickets;
-
--- 1 row(s) affected, 1 warning(s): 1292 Incorrect date value: '2017-11-30 19:09:37' for column 'endDate' at row 1 Rows matched: 1  Changed: 1  Warnings: 1
 
 
 UPDATE h1_j1_tickets
